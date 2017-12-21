@@ -1,7 +1,7 @@
 from astropy.io import fits
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 import matplotlib.image as mpimg
 
 map = fits.getdata('map.fits')
@@ -22,5 +22,8 @@ output = cv2.applyColorMap(output.astype(np.uint8), 11)
 
 cv2.imshow("original", img)
 cv2.imshow("output", output)
+
+# plt.imshow(output, interpolation='nearest')
+# plt.show()
 cv2.waitKey(0)
 
