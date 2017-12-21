@@ -3,10 +3,14 @@ import cv2
 import numpy as np
 
 
+def getGaussianKernel(ksize,sigma=-1):
+     return cv2.getGaussianKernel(ksize, sigma) * np.matrix.transpose(cv2.getGaussianKernel(ksize, sigma))
+
+
 def gaussian_median(src, gksize, mksize, nsteps):
 
     output = src.copy()
-    gaussian_kernel = cv2.getGaussianKernel(gksize, -1) * np.matrix.transpose(cv2.getGaussianKernel(gksize, -1))
+    gaussian_kernel = getGaussianKernel(gksize)
 
     for i in range(nsteps):
         output = cv2.filter2D(output, -1, gaussian_kernel)
