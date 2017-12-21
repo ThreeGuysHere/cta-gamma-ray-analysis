@@ -12,7 +12,7 @@ def getdata(src):
     return img
 
 
-def show(img1,img2):
+def show(img1, img2):
     src = "Original"
     out = "Output"
     cv2.namedWindow(src, cv2.WINDOW_NORMAL)
