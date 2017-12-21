@@ -1,33 +1,26 @@
 from astropy.io import fits
 import cv2
-import func
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
-#map = fits.getdata('map.fits')
-#img = np.zeros(map.shape)
-img = cv2.imread('prova.png', cv2.IMREAD_GRAYSCALE)
+map = fits.getdata('map.fits')
 
-# for x in range(500):
-#     for y in range(500):
-#         if img[x, y] > 0:
-#             img[x, y] = 127
-
-
+img = map.astype(np.uint8)
 cv2.normalize(img, img, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
-cv2.imshow('original', img)
+output = img.copy()
+
+cv2.imshow('original', output)
 
 gaussian_kernel = np.matrix('1 2 1; 2 4 2; 1 2 1') / 9.0
 
 for i in range(2):
-    img = cv2.filter2D(img, -1, gaussian_kernel)
-    img = cv2.medianBlur(img,13)
+    output = cv2.filter2D(output, -1, gaussian_kernel)
+    output = cv2.medianBlur(output, 15)
 
+output = cv2.applyColorMap(output.astype(np.uint8), 11)
 
-img = cv2.applyColorMap(img.astype(np.uint8), 11)
+cv2.imshow("original", img)
+cv2.imshow("output", output)
+cv2.waitKey(0)
 
-# img = cv2.threshold(img,127,255,cv2.THRESH_BINARY)[1]
-
-cv2.imshow('smoothed', img)
-cv2.waitKey()
