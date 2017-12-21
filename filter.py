@@ -3,14 +3,27 @@ import cv2
 import numpy as np
 
 
-def getGaussianKernel(ksize,sigma=-1):
-     return cv2.getGaussianKernel(ksize, sigma) * np.matrix.transpose(cv2.getGaussianKernel(ksize, sigma))
+def get_gaussian_kernel(ksize,sigma=-1):
+    """
+    Returns a Gaussian Kernel ksize * ksize
+    :param ksize: kernel size
+    :param sigma: sigma value of the gaussian curve
+    :return: gaussian kernel matrix
+    """
+    return cv2.getGaussianKernel(ksize, sigma) * np.matrix.transpose(cv2.getGaussianKernel(ksize, sigma))
 
 
 def gaussian_median(src, gksize, mksize, nsteps):
-
+    """
+    Computes a gaussian and a medial 2D filter nsteps times.
+    :param src: source image
+    :param gksize: gaussian kernel side size
+    :param mksize: medial kernel side size
+    :param nsteps: number of repetitions
+    :return:
+    """
     output = src.copy()
-    gaussian_kernel = getGaussianKernel(gksize)
+    gaussian_kernel = get_gaussian_kernel(gksize)
 
     for i in range(nsteps):
         output = cv2.filter2D(output, -1, gaussian_kernel)

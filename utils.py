@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 
 
-def getdata(src):
+def get_data(src):
     mapdata = fits.getdata(src)
 
     img = mapdata.astype(np.uint8)

@@ -2,13 +2,13 @@ import numpy as np
 import filter as f
 import cv2
 
-def ker(map):
-    '''
-    computes the kernel mask
-    :param map: ndarray, the raw fits map
-    :return: boh
-    '''
 
+def gaussian_mask(map):
+    """
+    Computes the kernel mask centered in the highest intensity points
+    :param map: ndarray, the raw fits map
+    :return: the gaussian mask matrix
+    """
     coords = np.unravel_index(map.argmax(), map.shape)
 
     distances = np.matrix([coords[0], coords[1], map.shape[0]-coords[0]-1, map.shape[1]-coords[1]-1])
@@ -17,7 +17,7 @@ def ker(map):
     print("max = {0}".format(max))
 
     ksize = 2*max+1
-    kernel = f.getGaussianKernel(ksize)
+    kernel = f.get_gaussian_kernel(ksize)
     print("kernel_shape = {0}".format(kernel.shape))
 
     kernel2 = kernel[max-coords[0]:max+(map.shape[0] - coords[0]), max-coords[1]:max+(map.shape[1] - coords[1])]

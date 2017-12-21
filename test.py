@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.image as mpimg
 
-img = utils.getdata('map.fits')
+img = utils.get_data('neb2.fits')
 
 output = filter.gaussian_median(img, 3, 15, 3)
 
