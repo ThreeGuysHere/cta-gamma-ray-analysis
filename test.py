@@ -1,29 +1,18 @@
-from astropy.io import fits
 import cv2
 import numpy as np
+import filter
+import utils
 from matplotlib import pyplot as plt
 import matplotlib.image as mpimg
 
-map = fits.getdata('map.fits')
+img = utils.getdata('map.fits')
 
-img = map.astype(np.uint8)
-cv2.normalize(img, img, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
-output = img.copy()
+output = filter.gaussian_median(img, 3, 9, 3)
 
-cv2.imshow('original', output)
+img = cv2.applyColorMap(img, cv2.COLORMAP_JET)
+output = cv2.applyColorMap(output, cv2.COLORMAP_JET)
 
-gaussian_kernel = np.matrix('1 2 1; 2 4 2; 1 2 1') / 9.0
+# output = cv2.threshold(output,127,255,cv2.THRESH_BINARY)[1]
 
-for i in range(2):
-    output = cv2.filter2D(output, -1, gaussian_kernel)
-    output = cv2.medianBlur(output, 15)
-
-output = cv2.applyColorMap(output.astype(np.uint8), 11)
-
-cv2.imshow("original", img)
-cv2.imshow("output", output)
-
-# plt.imshow(output, interpolation='nearest')
-# plt.show()
-cv2.waitKey(0)
+utils.show(img,output)
 
