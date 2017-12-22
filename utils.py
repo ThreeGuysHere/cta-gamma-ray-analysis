@@ -12,6 +12,11 @@ def get_data(src):
     return img
 
 
+def img_prepare(src):
+    cv2.normalize(src, src, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+    return src.astype(np.uint8)
+
+
 def show(img1, img2):
     src = "Original"
     out = "Output"
@@ -25,3 +30,4 @@ def show(img1, img2):
     cv2.resizeWindow(out, 500, 500)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
