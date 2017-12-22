@@ -9,5 +9,5 @@ out = k.gaussian_mask(img)
 
 res = np.multiply(img, out)
 
-utils.show(utils.img_prepare(out), utils.img_prepare(res))
+utils.show(kernel=utils.img_prepare(out), modificato=utils.img_prepare(res))
 
