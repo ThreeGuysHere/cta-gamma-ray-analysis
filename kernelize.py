@@ -17,7 +17,7 @@ def gray_gaussian_mask_at(img, coords):
 
     ksize = 2*max+1
 
-    kernel = f.get_gaussian_kernel(ksize,200)
+    kernel = f.get_gaussian_kernel(ksize)
     # print("kernel_shape = {0}".format(kernel.shape))
 
     mask = kernel[max-coords[0]:max+(img.shape[0] - coords[0]), max - coords[1]:max + (img.shape[1] - coords[1])]
@@ -45,8 +45,8 @@ def gaussian_mask(img):
     else:
         mask = gray_gaussian_mask_at(img, coords)
 
-    cv2.normalize(mask, mask, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
-    mask = mask.astype(np.uint8)
+    #cv2.normalize(mask, mask, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+    #mask = mask.astype(np.uint8)
 
     if color:
         mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB)
