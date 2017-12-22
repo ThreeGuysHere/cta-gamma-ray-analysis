@@ -33,21 +33,10 @@ def gaussian_mask(img):
     :return: a gaussian mask gray matrix
     """
     coords = np.argwhere(img == np.amax(img))
-    color = len(img.shape) == 3
 
-    coords = coords[:, :-1] if color else coords
-    coords = [(i[0], i[1]) for i in coords]
+    mask = np.zeros(img.shape)
 
-    mask = np.zeros(img.shape[:2])
-    if isinstance(coords, list):
-        for c in coords:
-            mask += gray_gaussian_mask_at(img, c)
-    else:
-        mask = gray_gaussian_mask_at(img, coords)
+    for c in coords:
+        mask += gray_gaussian_mask_at(img, c)
 
-    #cv2.normalize(mask, mask, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
-    #mask = mask.astype(np.uint8)
-
-    if color:
-        mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB)
     return mask
