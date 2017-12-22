@@ -4,9 +4,8 @@ import utils
 import kernelize as k
 import numpy as np
 
-img = cv2.imread('small2.png')
+img = cv2.imread('castello3.JPG')
 out = k.gaussian_mask(img)
-
-out[0] = cv2.bitwise_and(img, out[0])
-utils.show(img, out[0])
+out = cv2.bitwise_and(img, out)
+utils.show(img, out)
 

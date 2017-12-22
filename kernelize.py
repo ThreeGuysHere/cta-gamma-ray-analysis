@@ -3,13 +3,12 @@ import filter as f
 import cv2
 
 
-def gray_gaussian_mask_at(img, coords, normalize=False):
+def gray_gaussian_mask_at(img, coords):
     """
-    Computes the kernel mask centered in the highest intensity points
+    Computes a kernel gaussian mask centered in the given coordinates of the gaussian curve center
     :param img: ndarray, the raw fits map
     :param coords: coordinates of the gaussian curve center
-    :param normalize: if true, it normalizes the matrix (0,255)
-    :return: the gaussian mask gray matrix
+    :return: a gaussian mask gray matrix
     """
     distances = np.matrix([coords[0], coords[1], img.shape[0] - coords[0] - 1, img.shape[1] - coords[1] - 1])
     # print("distances = {0}".format(distances))
@@ -24,32 +23,26 @@ def gray_gaussian_mask_at(img, coords, normalize=False):
     mask = kernel[max-coords[0]:max+(img.shape[0] - coords[0]), max - coords[1]:max + (img.shape[1] - coords[1])]
 
     # print("mask_shape = {0}".format(mask.shape))
-    if normalize:
-        cv2.normalize(mask, mask, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
-    return mask.astype(np.uint8)
-
-
-def rgb_gaussian_mask_at(img, coords, normalize=False):
-    """
-    Computes the kernel mask centered in the highest intensity points
-    :param img: ndarray, the raw fits map
-    :param coords: coordinates of the gaussian curve center
-    :param normalize: if true, it normalizes the matrix (0,255)
-    :return: the gaussian mask rgb matrix
-    """
-    return cv2.cvtColor(gray_gaussian_mask_at(img, coords, normalize), cv2.COLOR_GRAY2RGB)
+    return mask
 
 
 def gaussian_mask(img):
+    """
+    Computes the kernel mask centered in the highest intensity points
+    :param img: ndarray, the raw fits map
+    :return: a gaussian mask gray matrix
+    """
     coords = np.argwhere(img == np.amax(img))
-    coords = [(i[0], i[1]) for i in coords[:,:-1]]
-    # print(coords)
-    maps = []
+    coords = coords if len(img.shape) == 2 else coords[:, :-1]
+    coords = [(i[0], i[1]) for i in coords]
+
+    mask = np.zeros(img.shape[:2])
     if isinstance(coords, list):
         for c in coords:
-            maps.append(rgb_gaussian_mask_at(img, c, True))
-            cv2.imshow(str(c), maps[coords.index(c)])
+            mask += gray_gaussian_mask_at(img, c)
     else:
-        maps.append(rgb_gaussian_mask_at(img, coords, True))
+        mask = gray_gaussian_mask_at(img, coords)
 
-    return maps
+    cv2.normalize(mask, mask, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+    mask = mask.astype(np.uint8)
+    return cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB)
