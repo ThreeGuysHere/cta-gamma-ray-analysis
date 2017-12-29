@@ -23,7 +23,7 @@ def find_weighted_centroid(img, mask):
     :return: 2 elements list with the centroid coordinates
     """
     weighted_blob = img * mask
-    int_sum = sum(weighted_blob)
+    int_sum = np.sum(weighted_blob)
 
     rows, cols = img.shape
 
