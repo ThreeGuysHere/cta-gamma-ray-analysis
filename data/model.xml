@@ -1,0 +1,5 @@
+<data>
+    <observation in_pnttype="PNT" in_ra="RAX" in_dec="DEC" in_obsid="OBS" in_tstart="STR" in_duration="DUR" />
+    <target in_emin="EMI" in_emax="EMA"  />
+    <instrument in_caldb="CAL" in_fov="FOV" in_irf="IRF" />
+</data>
