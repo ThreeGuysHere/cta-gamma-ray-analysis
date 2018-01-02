@@ -6,8 +6,7 @@ import astropy.wcs as a
 filepath = '../data/3s.fits'
 img = utils.get_data(filepath)
 
-smoothed = k.gaussian_median(img, 3, 7, 1)
-
+niter = 1
 ksize = 13
 mean = -10
 
@@ -23,18 +22,17 @@ while True:
 		mean += 1
 	elif key == 81:  # left
 		mean -= 1
-	elif key == 103: # G
-		smoothed = k.gaussian_median(smoothed, 3, 7, 1)
+	elif key == 103:  # g
+		niter += 1
+	elif key == 102 and niter >= 1:  # f
+		niter -= 1
 	else:
 		print(key)
 
+	smoothed = k.gaussian_median(img, 3, 7, niter)
 	mask = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, ksize, mean)
 
 	mask = cv2.dilate(mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=1)
-	# noise removal
-	# kernel = np.ones((3, 3), np.uint8)
-	# opening = cv2.morphologyEx(output, cv2.MORPH_OPEN, kernel, iterations = 1)
-
 
 	# Set up the SimpleBlobdetector with default parameters.
 	params = cv2.SimpleBlobDetector_Params()
