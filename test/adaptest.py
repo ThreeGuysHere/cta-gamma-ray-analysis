@@ -3,30 +3,32 @@ from filters import utils, kernelize as k
 import numpy as np
 import astropy.wcs as a
 
-filepath = '../data/map.fits'
+filepath = '../data/3s.fits'
 img = utils.get_data(filepath)
 
-smoothed = k.gaussian_median(img, 3, 7, 1)
+output = img.copy()
 
-ksize = 21
-mean = -20
+ksize = 13
+mean = -10
 
 while True:
 	key = cv2.waitKey(0)
 	if key == 27: #esc
 		break
-	elif key == 82:
+	elif key == 82:  # up
 		ksize += 2
-	elif key == 84 and ksize>=5:
+	elif key == 84 and ksize>=5:  # down
 		ksize -= 2
-	elif key == 83:
+	elif key == 83:  # right
 		mean += 1
-	elif key == 81:
+	elif key == 81:  # left
 		mean -= 1
+	elif key == 103: # G
+		output = k.gaussian_median(output, 3, 7, 1)
 	else:
 		print(key)
 
-	output = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, ksize, mean)
+	output = cv2.adaptiveThreshold(output, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, ksize, mean)
 
 	mask = cv2.dilate(output, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=1)
 	# noise removal
@@ -63,7 +65,7 @@ while True:
 	reversemask = 255 - mask
 	keypoints = detector.detect(reversemask)
 
-	im_with_keypoints = cv2.drawKeypoints(smoothed, keypoints, np.array([]), (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+	im_with_keypoints = cv2.drawKeypoints(output, keypoints, np.array([]), (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
 	wcs = a.WCS(filepath)
 
