@@ -1,6 +1,7 @@
 import cv2
 from filters import utils, kernelize as k
 import numpy as np
+import astropy.wcs as a
 
 img = utils.get_data('../data/3s.fits')
 
@@ -41,7 +42,15 @@ detector = cv2.SimpleBlobDetector_create(params)
 # Detect blobs.
 reversemask = 255 - mask
 keypoints = detector.detect(reversemask)
-print(keypoints)
+
 im_with_keypoints = cv2.drawKeypoints(smoothed, keypoints, np.array([]), (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+wcs = a.WCS('../data/3s.fits')
+
+for keyPoint in keypoints:
+    print("Pixel Cordinates: {0}".format(keyPoint.pt))
+    print("Radius: {0}".format(keyPoint.size))
+    ra, dec = wcs.wcs_pix2world(keyPoint.pt[0], keyPoint.pt[1], 0)
+    print("RA,DEC: ({0},{1})".format(ra, dec))
 
 utils.show(Original=img, Smoothed=smoothed, Dilated=mask, Blobbed=im_with_keypoints)
