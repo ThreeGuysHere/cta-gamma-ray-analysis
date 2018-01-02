@@ -7,21 +7,21 @@ filepath = '../data/3s.fits'
 img = utils.get_data(filepath)
 
 niter = 1
-ksize = 13
-mean = -10
+blockSize = 13
+const = -10
 
 while True:
 	key = cv2.waitKey(0)
 	if key == 27: #esc
 		break
 	elif key == 82:  # up
-		ksize += 2
-	elif key == 84 and ksize >= 5:  # down
-		ksize -= 2
+		blockSize += 2
+	elif key == 84 and blockSize >= 5:  # down
+		blockSize -= 2
 	elif key == 83:  # right
-		mean += 1
+		const += 1
 	elif key == 81:  # left
-		mean -= 1
+		const -= 1
 	elif key == 103:  # g
 		niter += 1
 	elif key == 102 and niter >= 1:  # f
@@ -30,7 +30,7 @@ while True:
 		print(key)
 
 	smoothed = k.gaussian_median(img, 3, 7, niter)
-	mask = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, ksize, mean)
+	mask = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, blockSize, const)
 
 	mask = cv2.dilate(mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=1)
 
