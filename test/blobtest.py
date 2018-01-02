@@ -1,20 +1,47 @@
 import cv2
 from filters import utils, kernelize as k
-from matplotlib import pyplot as plt
+import numpy as np
 
 img = utils.get_data('../data/3s.fits')
 
-output = k.gaussian_median(img, 3, 7, 1)
+smoothed = k.gaussian_median(img, 3, 7, 1)
 
-plt.hist(img.ravel(), 256, [0, 256])
-plt.show()
+output = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 21, -20)
+mask = cv2.dilate(output, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=1)
+# noise removal
+# kernel = np.ones((3, 3), np.uint8)
+# opening = cv2.morphologyEx(output, cv2.MORPH_OPEN, kernel, iterations = 1)
 
-plt.hist(output.ravel(), 256, [0, 256])
-plt.show()
 
-#img = cv2.applyColorMap(img, cv2.COLORMAP_JET)
-#output = cv2.applyColorMap(output, cv2.COLORMAP_JET)
+# Set up the SimpleBlobdetector with default parameters.
+params = cv2.SimpleBlobDetector_Params()
 
-# output = cv2.threshold(output,127,255,cv2.THRESH_BINARY)[1]
+# Change thresholds
+params.minThreshold = 0;
+params.maxThreshold = 256;
 
-utils.show(Original=img, Result=output)
+# Filter by Area.
+params.filterByArea = True
+params.minArea = 30
+
+# Filter by Circularity
+params.filterByCircularity = True
+params.minCircularity = 0.1
+
+# Filter by Convexity
+params.filterByConvexity = True
+params.minConvexity = 0.5
+
+# Filter by Inertia
+params.filterByInertia = True
+params.minInertiaRatio = 0.5
+
+detector = cv2.SimpleBlobDetector_create(params)
+
+# Detect blobs.
+reversemask = 255 - mask
+keypoints = detector.detect(reversemask)
+print(keypoints)
+im_with_keypoints = cv2.drawKeypoints(smoothed, keypoints, np.array([]), (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+utils.show(Original=img, Smoothed=smoothed, Dilated=mask, Blobbed=im_with_keypoints)
