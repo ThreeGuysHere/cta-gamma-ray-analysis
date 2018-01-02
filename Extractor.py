@@ -38,17 +38,18 @@ class Extractor:
 
 		# print(ce.find_weighted_centroid(output, mask))
 		bar = ce.find_barycenter(mask)
-		print("pixel coords = {0}".format(bar))
+		print("pixel: {0}".format(bar))
 
 		# conversion pixel 2 (ra,dec)
 		wcs = a.WCS(fits_map_path)
 		ra_c,dec_c = wcs.wcs_pix2world(bar[0], bar[1], 0)
-		print("ra={0}".format(ra_c))
-		print("dec={0}".format(dec_c))
-		print("verifica")
+		print("found: ({0},{1})".format(ra_c, dec_c))
+
+		print("\n-------verifica----------")
 		x_c,y_c=wcs.wcs_world2pix(ra_c, dec_c, 1)
 		print("x={0}".format(x_c))
 		print("y={0}".format(y_c))
+		print("-------------------------")
 
 		# print(w.all_world2pix(self.in_ra, self.in_dec, 1))
 		# print(w.all_pix2world(100, 100, 0))
