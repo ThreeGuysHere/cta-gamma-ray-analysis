@@ -73,6 +73,6 @@ while True:
 		print("Radius: {0}".format(keyPoint.size))
 		ra, dec = wcs.wcs_pix2world(keyPoint.pt[0], keyPoint.pt[1], 0)
 		print("RA,DEC: ({0},{1})".format(ra, dec))
-	print('======================================ksize, mean =' + str([ksize, mean]))
+	print('======================================blockSize, const =' + str([blockSize, const]))
 
 	utils.show2(Original=img, Smoothed=smoothed, Dilated=mask, Blobbed=im_with_keypoints)
