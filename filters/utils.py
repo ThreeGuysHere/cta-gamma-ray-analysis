@@ -41,6 +41,23 @@ def show(**kwargs):
 	cv2.destroyAllWindows()
 
 
+def show2(**kwargs):
+	x = 0
+	y = 0
+	for key in kwargs:
+		label = key
+		img = kwargs[key]
+		cv2.namedWindow(label, cv2.WINDOW_NORMAL)
+		cv2.imshow(label, img)
+		cv2.resizeWindow(label, dx, dy - label_bar_height)
+		cv2.moveWindow(label, x, y)
+
+		screen_end = int(x / (screen_width - dx)) > 0
+
+		x = x + dx if not screen_end else 0
+		y += dy if screen_end else 0
+
+
 def create_xml(model, output, pnt_type="equatorial", ra=83.64, dec=22.02, obsid=1, start=0.0, duration=100.0,
 				emin=0.1, emax=100, caldb="prod2", fov=10, irf="South_0.5h"):
 	with open(model, 'r') as model_xml:
@@ -66,3 +83,26 @@ def create_xml(model, output, pnt_type="equatorial", ra=83.64, dec=22.02, obsid=
 			output_file.write(parametrized)
 
 	return parametrized
+
+
+def plot3d(src):
+	from mpl_toolkits.mplot3d import Axes3D
+	from matplotlib import pylab as pl
+	from PIL import Image
+	import numpy as np
+
+	img = Image.fromarray(src)
+
+	z = np.asarray(img)
+	mydata = z[::1, ::1]
+	fig = pl.figure(facecolor='w')
+	ax1 = fig.add_subplot(1, 2, 1)
+	im = ax1.imshow(mydata, interpolation='nearest', cmap=pl.cm.jet)
+	ax1.set_title('2D')
+
+	ax2 = fig.add_subplot(1, 2, 2, projection='3d')
+	x, y = np.mgrid[:mydata.shape[0], :mydata.shape[1]]
+	ax2.plot_surface(x, y, mydata, cmap=pl.cm.jet, rstride=1, cstride=1, linewidth=0., antialiased=False)
+	ax2.set_title('3D')
+	ax2.set_zlim3d(0, 255)
+	pl.show()
