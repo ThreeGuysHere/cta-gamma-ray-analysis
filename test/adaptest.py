@@ -63,7 +63,7 @@ while True:
 	reversemask = 255 - mask
 	keypoints = detector.detect(reversemask)
 
-	im_with_keypoints = cv2.drawKeypoints(mask, keypoints, np.array([]), (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+	im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
 	wcs = a.WCS(filepath)
 
@@ -75,4 +75,4 @@ while True:
 		print("RA,DEC: ({0},{1})".format(ra, dec))
 	print('======================================blockSize, const =' + str([blockSize, const]))
 
-	utils.show2(Original=img, Smoothed=smoothed, Dilated=mask, Blobbed=im_with_keypoints)
+	utils.show2(Original=im_with_keypoints, Smoothed=smoothed, Dilated=mask)
