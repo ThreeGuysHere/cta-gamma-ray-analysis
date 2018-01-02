@@ -8,7 +8,7 @@ img = utils.get_data('../data/3s.fits')
 smoothed = k.gaussian_median(img, 3, 7, 1)
 
 ksize = 21
-boh = -20
+mean = -20
 
 while True:
 
@@ -17,16 +17,16 @@ while True:
 		break
 	elif key == 82:
 		ksize += 2
-	elif key == 84:
+	elif key == 84 and ksize>=5:
 		ksize -= 2
 	elif key == 83:
-		boh += 1
+		mean += 1
 	elif key == 81:
-		boh -= 1
+		mean -= 1
 	else:
 		print(key)
 
-	output = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, ksize, boh)
+	output = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, ksize, mean)
 
 	mask = cv2.dilate(output, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=1)
 	# noise removal
@@ -73,6 +73,6 @@ while True:
 		print("Radius: {0}".format(keyPoint.size))
 		ra, dec = wcs.wcs_pix2world(keyPoint.pt[0], keyPoint.pt[1], 0)
 		print("RA,DEC: ({0},{1})".format(ra, dec))
-	print('======================================'+str([ksize, boh]))
+	print('======================================ksize, mean =' + str([ksize, mean]))
 
 	utils.show2(Original=img, Dilated=mask, Blobbed=im_with_keypoints)
