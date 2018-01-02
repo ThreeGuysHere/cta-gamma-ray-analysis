@@ -3,7 +3,8 @@ from filters import utils, kernelize as k
 import numpy as np
 import astropy.wcs as a
 
-img = utils.get_data('../data/3s.fits')
+filepath = '../data/map.fits'
+img = utils.get_data(filepath)
 
 smoothed = k.gaussian_median(img, 3, 7, 1)
 
@@ -11,7 +12,6 @@ ksize = 21
 mean = -20
 
 while True:
-
 	key = cv2.waitKey(0)
 	if key == 27: #esc
 		break
@@ -26,7 +26,7 @@ while True:
 	else:
 		print(key)
 
-	output = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, ksize, mean)
+	output = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, ksize, mean)
 
 	mask = cv2.dilate(output, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=1)
 	# noise removal
@@ -65,7 +65,7 @@ while True:
 
 	im_with_keypoints = cv2.drawKeypoints(smoothed, keypoints, np.array([]), (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
-	wcs = a.WCS('../data/3s.fits')
+	wcs = a.WCS(filepath)
 
 	for keyPoint in keypoints:
 		print('----------------------------------')
