@@ -12,7 +12,7 @@ const = -10
 
 while True:
 	key = cv2.waitKey(0)
-	if key == 27: #esc
+	if key == 27:  # esc
 		break
 	elif key == 82:  # up
 		blockSize += 2
@@ -30,9 +30,9 @@ while True:
 		print(key)
 
 	smoothed = k.gaussian_median(img, 3, 7, niter)
-	mask = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, blockSize, const)
+	segmented = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, blockSize, const)
 
-	mask = cv2.dilate(mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=1)
+	#mask = cv2.dilate(mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=1)
 
 	# Set up the SimpleBlobdetector with default parameters.
 	params = cv2.SimpleBlobDetector_Params()
@@ -50,17 +50,17 @@ while True:
 	params.minCircularity = 0.1
 
 	# Filter by Convexity
-	params.filterByConvexity = True
+	params.filterByConvexity = False
 	params.minConvexity = 0.5
 
 	# Filter by Inertia
-	params.filterByInertia = True
+	params.filterByInertia = False
 	params.minInertiaRatio = 0.5
 
 	detector = cv2.SimpleBlobDetector_create(params)
 
 	# Detect blobs.
-	reversemask = 255 - mask
+	reversemask = 255 - segmented
 	keypoints = detector.detect(reversemask)
 
 	im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
@@ -73,6 +73,18 @@ while True:
 		print("Radius: {0}".format(keyPoint.size))
 		ra, dec = wcs.wcs_pix2world(keyPoint.pt[0], keyPoint.pt[1], 0)
 		print("RA,DEC: ({0},{1})".format(ra, dec))
+		radius = int(keyPoint.size/2)
+		mask = np.zeros(img.shape)
+		ykp = int(keyPoint.pt[0]) #why?
+		xkp = int(keyPoint.pt[1])
+		for i in range(-radius, radius):
+			for j in range(-radius, radius):
+				mask[xkp + i, ykp + j] = 1
+		#salvare maschere in array
+	#moltiplicare maschera x smoothed
+	#cercare il massimo + neighbour al n%
+
+
 	print('======================================blockSize, const =' + str([blockSize, const]))
 
 	utils.show2(Original=im_with_keypoints, Smoothed=smoothed, Dilated=mask)
