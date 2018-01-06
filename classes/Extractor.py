@@ -1,4 +1,5 @@
-from filters import kernelize as k, utils, BlobResult as blob, TimeChecker as timer
+from filters import kernelize as k, utils
+from classes import TimeChecker as timer, BlobResult as blob
 import cv2
 import numpy as np
 
@@ -91,7 +92,8 @@ class Extractor:
 
 		utils.show(Original=img, Smoothed=smoothed, Segmented=segmented, Blobbed=im_with_keypoints)
 
-		# TODO: continuare da qua
+		# TODO: sorgenti grandi da riempire, sorgenti piccole attenzione a non eliminarle, tuning parametri filtraggio
+		# TODO: occhio al rumore (potrebbe essere enfatizzato) e alle sorgenti che potrebbero toccarsi (se erodiamo, occhio a non rimuovere sorgenti deboli)
 		# moltiplicare maschera x smoothed
 		# cercare il massimo + neighbour al n%
 		# create output xml file coi risultati
