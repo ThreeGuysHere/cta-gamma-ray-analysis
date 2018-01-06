@@ -1,64 +1,99 @@
-from filters import kernelize as k, utils, centroid_extraction as ce
-import astropy.wcs as a
+from filters import kernelize as k, utils, BlobResult as blob, TimeChecker as timer
 import cv2
 import numpy as np
 
 
 class Extractor:
 
-	def __init__(self):
+	def __init__(self, fits_path=None):
 		"""
 		Constructor
 		"""
-		# # vedere cosa vale la pena di mettere come campi privati
-
-		# Set some standard test data
-		# self._datadir = os.environ['PATH']
-		# self.caldb = 'prod2'
-		# self.irf = 'South_0.5h'
-
+		self.fits_path = fits_path
 		print('Extractor initialised')
 		return
 
-
-	def perform_extraction(self, fits_map_path):
+	def perform_extraction(self):
 		"""
-		Identifies the gamma-ray source coordinates (ra,dec) from the input map and creates a xml file for ctlike
+		Identifies the gamma-ray source coordinates (RA,Dec) from the input map and creates a xml file for ctlike
 		:param fits_map_path: input map.fits path
 		:return: (ra,dec) coordinates of the source and the path of the output xml
 		"""
-		# open fits map
-		img = utils.get_data(fits_map_path)
-		print("loaded map: {0}".format(fits_map_path))
+		time = timer.TimeChecker()
+		# Open fits map
+		img = utils.get_data(self.fits_path)
+		print("loaded map: {0}".format(self.fits_path))
 
-		# extraction
-		output = k.gaussian_median(img, 3, 7, 1)
+		time.toggle_time("read")
 
-		mask = cv2.threshold(output, 127, 255, cv2.THRESH_BINARY)[1]
+		# Filter map
+		smoothed = k.gaussian_median(img, 3, 7, 1)
 
-		# print(ce.find_weighted_centroid(output, mask))
-		bar = ce.find_barycenter(mask)
-		print("pixel: {0}".format(bar))
+		time.toggle_time("smoothing")
 
-		# conversion pixel 2 (ra,dec)
-		wcs = a.WCS(fits_map_path)
-		ra_c,dec_c = wcs.wcs_pix2world(bar[0], bar[1], 0)
-		print("found: ({0},{1})".format(ra_c, dec_c))
+		# Binary segmentation and binary morphology
+		block_size = 13
+		const = -10
+		segmented = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, block_size, const)
 
-		print("\n-------verifica----------")
-		x_c,y_c=wcs.wcs_world2pix(ra_c, dec_c, 1)
-		print("x={0}".format(x_c))
-		print("y={0}".format(y_c))
-		print("-------------------------")
+		segmented = cv2.erode(segmented, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2)), iterations=1)
+		# segmented = cv2.dilate(segmented, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=1)
 
-		# print(w.all_world2pix(self.in_ra, self.in_dec, 1))
-		# print(w.all_pix2world(100, 100, 0))
+		time.toggle_time("segmentation")
 
+		# Blob detection
+		# # Detection parameters
+		params = cv2.SimpleBlobDetector_Params()
 
-		# print result
-		img = cv2.applyColorMap(img, cv2.COLORMAP_JET)
-		output = cv2.applyColorMap(output, cv2.COLORMAP_JET)
-		utils.show(Original=img, Result=output)
+		# # Thresholds
+		params.minThreshold = 0
+		params.maxThreshold = 256
 
-		# create output xml file
-		return [ra_c, dec_c], '/stay/tuned.xml'
+		# # Filter blob by area
+		params.filterByArea = True
+		params.minArea = 15
+
+		# # Filter blob by circularity
+		params.filterByCircularity = True
+		params.minCircularity = 0.2
+
+		# # Remove unnecessary filters
+		params.filterByConvexity = False
+		params.filterByInertia = False
+
+		detector = cv2.SimpleBlobDetector_create(params)
+
+		# # Detect blobs
+		reverse_segmented = 255 - segmented
+		keypoints = detector.detect(reverse_segmented)
+
+		# # Overlap keypoints and original image
+		im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+		blob_array = []
+		for keyPoint in keypoints:
+			current_blob = blob.BlobResult(self.fits_path)
+			current_blob.set_bary(keyPoint.pt)
+			current_blob.set_diameter(keyPoint.size)
+			current_blob.set_mask(img.shape)
+
+			blob_array.append(current_blob)
+
+		time.toggle_time("blob analysis")
+		time.total()
+
+		for el in blob_array:
+			print('----------------------------------')
+			el.print_values()
+			cv2.imshow("Masks", el.mask)
+			cv2.waitKey()
+		print('=================================')
+
+		utils.show(Original=img, Smoothed=smoothed, Segmented=segmented, Blobbed=im_with_keypoints)
+
+		# TODO: continuare da qua
+		# moltiplicare maschera x smoothed
+		# cercare il massimo + neighbour al n%
+		# create output xml file coi risultati
+
+		return '/stay/tuned.xml'

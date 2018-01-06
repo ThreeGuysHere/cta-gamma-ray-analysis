@@ -15,7 +15,7 @@ class TimeChecker:
 		self.sum = 0
 		return
 
-	def mark_time(self, descr, print_time=True):
+	def toggle_time(self, descr, print_time=True):
 		now = time.time()
 		self.sum = self.sum + (now - self.lastMark)
 		if print_time:
