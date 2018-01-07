@@ -1,14 +1,18 @@
 import cv2
+import numpy as np
 from filters import utils, kernelize as k
+from matplotlib import pyplot as plt
 
-img = utils.get_data('../data/cube_2.fits')
+img = utils.get_data('../data/3s.fits')
 
-output = k.gaussian_median(img, 3, 15, 3)
+output = k.gaussian_median(img, 3, 7, 1)
 
-img = cv2.applyColorMap(img, cv2.COLORMAP_JET)
-output = cv2.applyColorMap(output, cv2.COLORMAP_JET)
+output = np.multiply(output.astype(np.uint32)**0.5, 255**0.5).astype(np.uint8)
 
-# output = cv2.threshold(output,127,255,cv2.THRESH_BINARY)[1]
+hist = cv2.calcHist([output], [0], None, [256], [0, 255])
+plt.plot(hist)
+plt.show()
 
+#cv2.normalize(output, output, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
 utils.show(Original=img, Result=output)
 

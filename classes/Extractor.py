@@ -111,3 +111,29 @@ class Extractor:
 
 		# create output xml file coi risultati
 		return '/stay/tuned.xml'
+
+
+
+	def local_stretching(self):
+		time = timer.TimeChecker()
+		# Open fits map
+		img = utils.get_data(self.fits_path)
+		print("loaded map: {0}".format(self.fits_path))
+
+		time.toggle_time("read")
+
+		# Filter map
+		smoothed = k.gaussian_median(img, 3, 7, 1)
+		localled = smoothed.copy()
+		time.toggle_time("smoothing")
+
+		for (x, y, window) in utils.sliding_window(smoothed, stepSize=1, windowSize=(21, 21)):
+			local_hist = cv2.calcHist([window], [0], None, [256], [0, 255])
+			bins = np.count_nonzero(local_hist)
+			if bins > 18:
+				window1 = window.copy()
+				cv2.normalize(window1, window1, 0, 255, cv2.NORM_MINMAX)
+				localled[y:y + 21, x:x + 21] = window1
+				# localled[y:y + 21, x:x + 21] = np.multiply(255/(rmax-rmin), (window-rmin))
+
+		utils.show(Original=img, Smoothed=smoothed, Local=localled)

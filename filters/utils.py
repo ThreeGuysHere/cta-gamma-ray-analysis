@@ -106,3 +106,11 @@ def plot3d(src):
 	ax2.set_title('3D')
 	ax2.set_zlim3d(0, 255)
 	pl.show()
+
+
+def sliding_window(image, stepSize, windowSize):
+	# slide a window across the image
+	for y in range(0, image.shape[0] - int(windowSize[0]) + 1, stepSize):
+		for x in range(0, image.shape[1] - int(windowSize[1]) + 1, stepSize):
+			# yield the current window
+			yield (x, y, image[y:y + windowSize[1], x:x + windowSize[0]])
