@@ -33,11 +33,11 @@ def find_weighted_centroid(img, mask):
     # sum by rows
     a = np.matrix(range(rows)).transpose()
     b = np.tile(a, (1, rows))
-    x = np.sum(np.multiply(weighted_blob, b)) / int_sum
+    y = np.sum(np.multiply(weighted_blob, b)) / int_sum
 
     # sum by columns
     c = np.matrix(range(cols))
     d = np.tile(c, (cols, 1))
-    y = np.sum(np.multiply(weighted_blob, d)) / int_sum
+    x = np.sum(np.multiply(weighted_blob, d)) / int_sum
 
     return [int(round(x)), int(round(y))], area, radius, np.multiply(img, mask)

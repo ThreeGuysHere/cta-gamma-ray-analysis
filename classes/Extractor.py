@@ -91,8 +91,9 @@ class Extractor:
 			print('----------------------------------')
 			el.print_values()
 			center, area, radius, masked = ce.find_weighted_centroid(smoothed, el.mask)
-
-			print("center = {0}\narea = {1}\nradius = {2}\n".format(center,area,radius))
+			el.bary = center
+			el.diam = 2*radius
+			print("center = {0}\narea = {1}\nradius = {2}\nRA,Dec = ({3},{4})".format(center, area, radius, el.radec[0], el.radec[1]))
 			# cv2.imshow("Masks", masked)
 			# cv2.waitKey()
 		print('=================================')
