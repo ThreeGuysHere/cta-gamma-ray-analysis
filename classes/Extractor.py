@@ -1,4 +1,4 @@
-from filters import kernelize as k, utils
+from filters import kernelize as k, utils, centroid_extraction as ce
 from classes import TimeChecker as timer, BlobResult as blob
 import cv2
 import numpy as np
@@ -35,8 +35,13 @@ class Extractor:
 		# Binary segmentation and binary morphology
 		block_size = 13
 		const = -10
+		# TODO: tuning parametri per condizioni variabili
 		segmented = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, block_size, const)
 
+		# TODO: sorgenti grandi "da riempire": dilation
+		# TODO: sorgenti piccole "deboli": dilation (attenzione a non eliminarle con erosion)
+		# TODO: sorgenti sovrapposte: erosion (ma attenzione a quanta, si rischia di eliminare sorgenti deboli)
+		# TODO: rumore spurio: erosion ma stesso discorso di sopra (o median filter a posteriori)
 		segmented = cv2.erode(segmented, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2)), iterations=1)
 		# segmented = cv2.dilate(segmented, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=1)
 
@@ -80,22 +85,28 @@ class Extractor:
 
 			blob_array.append(current_blob)
 
-		time.toggle_time("blob analysis")
-		time.total()
+		time.toggle_time("blob extraction")
 
 		for el in blob_array:
 			print('----------------------------------')
 			el.print_values()
-			cv2.imshow("Masks", el.mask)
-			cv2.waitKey()
+			center, area, radius, masked = ce.find_weighted_centroid(smoothed, el.mask)
+
+			print("center = {0}\narea = {1}\nradius = {2}\n".format(center,area,radius))
+			# cv2.imshow("Masks", masked)
+			# cv2.waitKey()
 		print('=================================')
+
+		time.toggle_time("blob features")
+		time.total()
 
 		utils.show(Original=img, Smoothed=smoothed, Segmented=segmented, Blobbed=im_with_keypoints)
 
-		# TODO: sorgenti grandi da riempire, sorgenti piccole attenzione a non eliminarle, tuning parametri filtraggio
-		# TODO: occhio al rumore (potrebbe essere enfatizzato) e alle sorgenti che potrebbero toccarsi (se erodiamo, occhio a non rimuovere sorgenti deboli)
-		# moltiplicare maschera x smoothed
-		# cercare il massimo + neighbour al n%
-		# create output xml file coi risultati
 
+		# # cercare il massimo + neighbour al n%
+		# masked_original = np.multiply(smoothed, el.mask)
+		# center_intensity = np.argwhere(masked_original >= int(np.amax(masked_original)*0.95))
+		# print(center_intensity)
+
+		# create output xml file coi risultati
 		return '/stay/tuned.xml'

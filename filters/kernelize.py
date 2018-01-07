@@ -65,8 +65,8 @@ def gaussian_median(src, gksize, mksize, nsteps):
 
     for i in range(nsteps):
         output = cv2.filter2D(output, -1, gaussian_kernel)
-        #output = cv2.medianBlur(output, mksize)
+        output = cv2.medianBlur(output, mksize)
 
-    #cv2.normalize(output, output, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+    # cv2.normalize(output, output, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
     return output
 

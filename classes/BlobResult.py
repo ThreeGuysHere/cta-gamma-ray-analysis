@@ -35,7 +35,7 @@ class BlobResult:
 		for i in range(-self.radius, self.radius):
 			for j in range(-self.radius, self.radius):
 				msk[xkp + i, ykp + j] = 1
-		self.mask = msk
+		self.mask = msk.astype(np.uint8)
 		return
 
 	def print_values(self):

@@ -27,6 +27,9 @@ def find_weighted_centroid(img, mask):
 
     rows, cols = img.shape
 
+    area = np.count_nonzero(np.multiply(img, mask))
+    radius = np.sqrt(area/np.pi)
+
     # sum by rows
     a = np.matrix(range(rows)).transpose()
     b = np.tile(a, (1, rows))
@@ -37,4 +40,4 @@ def find_weighted_centroid(img, mask):
     d = np.tile(c, (cols, 1))
     y = np.sum(np.multiply(weighted_blob, d)) / int_sum
 
-    return [x, y]
+    return [int(round(x)), int(round(y))], area, radius, np.multiply(img, mask)
