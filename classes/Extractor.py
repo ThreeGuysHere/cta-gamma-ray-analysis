@@ -107,7 +107,7 @@ class Extractor:
 			# print("center = {0}\narea = {1}\nradius = {2}\nRA,Dec = ({3},{4})".format(center, area, radius, el.radec[0], el.radec[1]))
 		print('=================================')
 
-		utils.show(Blobbed=im_with_keypoints, Original=img)
+		utils.show2(Blobbed=im_with_keypoints, Original=img)
 
 		# # cercare il massimo + neighbour al n%
 		# masked_original = np.multiply(smoothed, el.mask)

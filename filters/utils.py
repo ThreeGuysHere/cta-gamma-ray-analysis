@@ -30,7 +30,7 @@ def get_data(src):
 
 	# TRUNC version
 	data = fits.getdata(src)
-	img = data.astype(np.uint8)
+	img = data.astype(np.uint16)
 	return img_prepare(img)
 
 
