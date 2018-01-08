@@ -25,21 +25,21 @@ class BlobResult:
 
 	def set_diameter(self, size):
 		self.diam = size
-		self.radius = int(size/2)
+		self.radius = size/2
 		return
 
 	def set_mask(self, shape):
 		msk = np.zeros(shape)
 		ykp = int(self.bary[0])  # why?
 		xkp = int(self.bary[1])
-		for i in range(-self.radius, self.radius):
-			for j in range(-self.radius, self.radius):
+		for i in range(-int(self.radius), int(self.radius)):
+			for j in range(-int(self.radius), int(self.radius)):
 				msk[xkp + i, ykp + j] = 1
 		self.mask = msk.astype(np.uint8)
 		return
 
 	def print_values(self):
 		print("Barycenter: {0}".format(self.bary))
-		print("Size: {0}".format(self.diam))
+		print("Radius: {0}".format(self.radius))
 		print("RA,Dec: ({0},{1})".format(self.radec[0], self.radec[1]))
 		return
