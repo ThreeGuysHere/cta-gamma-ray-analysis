@@ -102,8 +102,8 @@ class Extractor:
 		time.toggle_time("blob features")
 		time.total()
 
-		utils.show(Original=img, Smoothed=smoothed, Segmented=segmented, Blobbed=im_with_keypoints)
-
+		#utils.show(Original=img, Smoothed=smoothed, Segmented=segmented, Blobbed=im_with_keypoints)
+		utils.show(Original=img, Blobbed=im_with_keypoints)
 
 		# # cercare il massimo + neighbour al n%
 		# masked_original = np.multiply(smoothed, el.mask)
@@ -138,5 +138,5 @@ class Extractor:
 				localled[y:y + ksize, x:x + ksize] = window1
 				# localled[y:y + ksize, x:x + ksize] = np.multiply(255/(rmax-rmin), (window-rmin))
 
-		utils.show(Original=img, Smoothed=smoothed, Local=localled)
+		#utils.show(Original=img, Smoothed=smoothed, Local=localled)
 		return localled
