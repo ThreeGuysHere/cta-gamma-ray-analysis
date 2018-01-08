@@ -29,21 +29,22 @@ class Extractor:
 
 		# Filter map
 		smoothed = k.gaussian_median(img, 3, 7, 1)
-
+		localled = self.local_stretching()
 		time.toggle_time("smoothing")
 
 		# Binary segmentation and binary morphology
 		block_size = 13
-		const = -10
+		const = -7
 		# TODO: tuning parametri per condizioni variabili
-		segmented = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, block_size, const)
+		segmented = cv2.adaptiveThreshold(localled, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, block_size, const)
 
 		# TODO: sorgenti grandi "da riempire": dilation
 		# TODO: sorgenti piccole "deboli": dilation (attenzione a non eliminarle con erosion)
 		# TODO: sorgenti sovrapposte: erosion (ma attenzione a quanta, si rischia di eliminare sorgenti deboli)
 		# TODO: rumore spurio: erosion ma stesso discorso di sopra (o median filter a posteriori)
-		segmented = cv2.erode(segmented, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2)), iterations=1)
-		# segmented = cv2.dilate(segmented, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=1)
+		segmented = cv2.morphologyEx(segmented, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)))
+		#segmented = cv2.erode(segmented, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 1)), iterations=2)
+		#segmented = cv2.dilate(segmented, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2)), iterations=1)
 
 		time.toggle_time("segmentation")
 
@@ -130,10 +131,11 @@ class Extractor:
 		for (x, y, window) in utils.sliding_window(smoothed, stepSize=1, windowSize=(21, 21)):
 			local_hist = cv2.calcHist([window], [0], None, [256], [0, 255])
 			bins = np.count_nonzero(local_hist)
-			if bins > 18:
+			if bins > 15:
 				window1 = window.copy()
 				cv2.normalize(window1, window1, 0, 255, cv2.NORM_MINMAX)
 				localled[y:y + 21, x:x + 21] = window1
 				# localled[y:y + 21, x:x + 21] = np.multiply(255/(rmax-rmin), (window-rmin))
 
 		utils.show(Original=img, Smoothed=smoothed, Local=localled)
+		return localled
