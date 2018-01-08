@@ -128,14 +128,15 @@ class Extractor:
 		localled = smoothed.copy()
 		time.toggle_time("smoothing")
 
-		for (x, y, window) in utils.sliding_window(smoothed, stepSize=1, windowSize=(21, 21)):
+		ksize = 21
+		for (x, y, window) in utils.sliding_window(smoothed, stepSize=5, windowSize=(ksize, ksize)):
 			local_hist = cv2.calcHist([window], [0], None, [256], [0, 255])
 			bins = np.count_nonzero(local_hist)
 			if bins > 15:
 				window1 = window.copy()
 				cv2.normalize(window1, window1, 0, 255, cv2.NORM_MINMAX)
-				localled[y:y + 21, x:x + 21] = window1
-				# localled[y:y + 21, x:x + 21] = np.multiply(255/(rmax-rmin), (window-rmin))
+				localled[y:y + ksize, x:x + ksize] = window1
+				# localled[y:y + ksize, x:x + ksize] = np.multiply(255/(rmax-rmin), (window-rmin))
 
 		utils.show(Original=img, Smoothed=smoothed, Local=localled)
 		return localled
