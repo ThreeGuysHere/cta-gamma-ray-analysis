@@ -14,7 +14,7 @@ class Extractor:
 		print('Extractor initialised')
 		return
 
-	def perform_extraction(self, local=0, adaptive=0):
+	def perform_extraction(self, local=0, adaptive=True, intermediatePrint=False):
 		"""
 		Identifies the gamma-ray source coordinates (RA,Dec) from the input map and creates a xml file for ctlike
 		:param local: TODO
@@ -31,9 +31,9 @@ class Extractor:
 		# Filter map
 		smoothed = k.gaussian_median(img, 3, 7, 1)
 		if local == 0:
-			localled = self.local_stretching(smoothed)
+			localled = self.local_stretching(smoothed, intermediatePrint)
 		elif local == 1:
-			localled = self.local_equalization(smoothed)
+			localled = self.local_equalization(smoothed, intermediatePrint)
 
 		time.toggle_time("smoothing")
 
@@ -41,11 +41,10 @@ class Extractor:
 		block_size = 13
 		const = -7
 		# TODO: tuning parametri per condizioni variabili
-		if adaptive == 0:
-			segmented = cv2.threshold(localled, 127, 255, cv2.THRESH_BINARY)
-		elif adaptive == 1:
+		if adaptive:
 			segmented = cv2.adaptiveThreshold(localled, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, block_size, const)
-
+		else:
+			segmented = cv2.threshold(localled, 127, 255, cv2.THRESH_BINARY)[1]
 		# TODO: sorgenti grandi "da riempire": dilation
 		# TODO: sorgenti piccole "deboli": dilation (attenzione a non eliminarle con erosion)
 		# TODO: sorgenti sovrapposte: erosion (ma attenzione a quanta, si rischia di eliminare sorgenti deboli)
@@ -121,7 +120,7 @@ class Extractor:
 		# create output xml file coi risultati
 		return '/stay/tuned.xml'
 
-	def local_stretching(self, smoothed):
+	def local_stretching(self, smoothed, printInt=False):
 		time = timer.TimeChecker()
 		# Open fits map
 		img = utils.get_data(self.fits_path)
@@ -142,11 +141,11 @@ class Extractor:
 				cv2.normalize(window1, window1, 0, 255, cv2.NORM_MINMAX)
 				localled[y:y + ksize, x:x + ksize] = window1
 				# localled[y:y + ksize, x:x + ksize] = np.multiply(255/(rmax-rmin), (window-rmin))
-
-		#utils.show(Original=img, Smoothed=smoothed, Local=localled)
+		if printInt:
+			utils.show(Original=img, Smoothed=smoothed, Local=localled)
 		return localled
 
-	def local_equalization(self, smoothed):
+	def local_equalization(self, smoothed, printInf=False):
 		time = timer.TimeChecker()
 		# Open fits map
 		img = utils.get_data(self.fits_path)
@@ -158,4 +157,6 @@ class Extractor:
 		clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(20, 20))
 		localled = clahe.apply(smoothed)
 
+		if printInf:
+			utils.show(Original=img, Smoothed=smoothed, Local=localled)
 		return localled
