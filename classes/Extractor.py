@@ -14,10 +14,11 @@ class Extractor:
 		print('Extractor initialised')
 		return
 
-	def perform_extraction(self):
+	def perform_extraction(self, local=0, adaptive=0):
 		"""
 		Identifies the gamma-ray source coordinates (RA,Dec) from the input map and creates a xml file for ctlike
-		:param fits_map_path: input map.fits path
+		:param local: TODO
+		:param adaptive: TODO
 		:return: (ra,dec) coordinates of the source and the path of the output xml
 		"""
 		time = timer.TimeChecker()
@@ -29,15 +30,21 @@ class Extractor:
 
 		# Filter map
 		smoothed = k.gaussian_median(img, 3, 7, 1)
-		localled = self.local_stretching()
-		#localled = self.local_equalization(smoothed)
+		if local == 0:
+			localled = self.local_stretching(smoothed)
+		elif local == 1:
+			localled = self.local_equalization(smoothed)
+
 		time.toggle_time("smoothing")
 
 		# Binary segmentation and binary morphology
 		block_size = 13
 		const = -7
 		# TODO: tuning parametri per condizioni variabili
-		segmented = cv2.adaptiveThreshold(localled, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, block_size, const)
+		if adaptive == 0:
+			segmented = cv2.threshold(localled, 127, 255, cv2.THRESH_BINARY)
+		elif adaptive == 1:
+			segmented = cv2.adaptiveThreshold(localled, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, block_size, const)
 
 		# TODO: sorgenti grandi "da riempire": dilation
 		# TODO: sorgenti piccole "deboli": dilation (attenzione a non eliminarle con erosion)
@@ -114,9 +121,7 @@ class Extractor:
 		# create output xml file coi risultati
 		return '/stay/tuned.xml'
 
-
-
-	def local_stretching(self):
+	def local_stretching(self, smoothed):
 		time = timer.TimeChecker()
 		# Open fits map
 		img = utils.get_data(self.fits_path)
@@ -125,7 +130,6 @@ class Extractor:
 		time.toggle_time("read")
 
 		# Filter map
-		smoothed = k.gaussian_median(img, 3, 7, 1)
 		localled = smoothed.copy()
 		time.toggle_time("smoothing")
 

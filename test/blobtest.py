@@ -6,5 +6,5 @@ fits_names = ['../img/1s.fits', '../img/1s_bis.fits', '../img/1s_noise.fits',
 
 for x in range(9):
 	ext = Extractor.Extractor(fits_names[x])
-	xml = ext.perform_extraction()
+	xml = ext.perform_extraction(0)
 	print("output_xml_path = {0}".format(xml))
