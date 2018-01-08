@@ -22,12 +22,12 @@ def find_weighted_centroid(img, mask):
     :param mask: segmented image with one blob
     :return: 2 elements list with the centroid coordinates
     """
-    weighted_blob = img * mask
+    weighted_blob = np.multiply(img, mask)
     int_sum = np.sum(weighted_blob)
 
     rows, cols = img.shape
 
-    area = np.count_nonzero(np.multiply(img, mask))
+    area = np.count_nonzero(weighted_blob)
     radius = np.sqrt(area/np.pi)
 
     # sum by rows
@@ -40,4 +40,4 @@ def find_weighted_centroid(img, mask):
     d = np.tile(c, (cols, 1))
     x = np.sum(np.multiply(weighted_blob, d)) / int_sum
 
-    return [int(round(x)), int(round(y))], area, radius, np.multiply(img, mask)
+    return [int(round(x)), int(round(y))], area, radius, weighted_blob

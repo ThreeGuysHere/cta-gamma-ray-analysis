@@ -29,7 +29,7 @@ class Extractor:
 		time.toggle_time("read")
 
 		# Filter map
-		smoothed = k.gaussian_median(img, 3, 7, 1)
+		smoothed = k.median_gaussian(img, 3, 7, 1)
 		if local == 0:
 			localled = self.local_stretching(smoothed, intermediatePrint)
 		elif local == 1:
@@ -94,22 +94,19 @@ class Extractor:
 			blob_array.append(current_blob)
 
 		time.toggle_time("blob extraction")
+		time.total()
 
 		for el in blob_array:
 			print('----------------------------------')
 			el.print_values()
-			center, area, radius, masked = ce.find_weighted_centroid(smoothed, el.mask)
-			el.bary = center
-			el.diam = 2*radius
-			print("center = {0}\narea = {1}\nradius = {2}\nRA,Dec = ({3},{4})".format(center, area, radius, el.radec[0], el.radec[1]))
-			# cv2.imshow("Masks", masked)
-			# cv2.waitKey()
+
+			# # Same results
+			# center, area, radius, _ = ce.find_weighted_centroid(smoothed, el.mask)
+			# el.bary = center
+			# el.diam = 2*radius
+			# print("center = {0}\narea = {1}\nradius = {2}\nRA,Dec = ({3},{4})".format(center, area, radius, el.radec[0], el.radec[1]))
 		print('=================================')
 
-		time.toggle_time("blob features")
-		time.total()
-
-		#utils.show(Original=img, Smoothed=smoothed, Segmented=segmented, Blobbed=im_with_keypoints)
 		utils.show(Blobbed=im_with_keypoints, Original=img)
 
 		# # cercare il massimo + neighbour al n%
