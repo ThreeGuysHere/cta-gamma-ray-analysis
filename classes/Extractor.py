@@ -117,7 +117,7 @@ class Extractor:
 		# create output xml file coi risultati
 		return '/stay/tuned.xml'
 
-	def local_stretching(self, smoothed, printInt=False):
+	def local_stretching(self, smoothed, print_int=False):
 		time = timer.TimeChecker()
 		# Open fits map
 		img = utils.get_data(self.fits_path)
@@ -137,8 +137,8 @@ class Extractor:
 				window1 = window.copy()
 				cv2.normalize(window1, window1, 0, 255, cv2.NORM_MINMAX)
 				localled[y:y + ksize, x:x + ksize] = window1
-				# localled[y:y + ksize, x:x + ksize] = np.multiply(255/(rmax-rmin), (window-rmin))
-		if printInt:
+
+		if print_int:
 			utils.show(Original=img, Smoothed=smoothed, Local=localled)
 		return localled
 

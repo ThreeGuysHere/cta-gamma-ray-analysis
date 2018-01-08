@@ -15,7 +15,20 @@ def img_prepare(src):
 	return src.astype(np.uint8)
 
 
+def normalize(src):
+	src_max = np.max(src)
+	src_min = np.min(src)
+	src = np.multiply(src-src_min, 255/(src_max - src_min))
+	return src
+
+
 def get_data(src):
+	# Overflow aware version
+	# data = fits.getdata(src)
+	# data = normalize(data)
+	# return data.astype(np.uint8)
+
+	# TRUNC version
 	data = fits.getdata(src)
 	img = data.astype(np.uint8)
 	return img_prepare(img)
