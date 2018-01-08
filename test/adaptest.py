@@ -3,7 +3,7 @@ from filters import utils, kernelize as k
 import numpy as np
 import astropy.wcs as a
 
-filepath = '../data/3s.fits'
+filepath = '../img/3s_strong_noise.fits'
 img = utils.get_data(filepath)
 
 niter = 1
@@ -87,4 +87,4 @@ while True:
 
 	print('======================================blockSize, const =' + str([blockSize, const]))
 
-	utils.show2(Original=im_with_keypoints, Smoothed=smoothed, Dilated=mask)
+	utils.show2(Original=im_with_keypoints, Smoothed=smoothed)
