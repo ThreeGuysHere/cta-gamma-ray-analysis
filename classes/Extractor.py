@@ -103,7 +103,7 @@ class Extractor:
 		time.total()
 
 		#utils.show(Original=img, Smoothed=smoothed, Segmented=segmented, Blobbed=im_with_keypoints)
-		utils.show(Original=img, Blobbed=im_with_keypoints)
+		utils.show(Blobbed=im_with_keypoints, Original=img)
 
 		# # cercare il massimo + neighbour al n%
 		# masked_original = np.multiply(smoothed, el.mask)
