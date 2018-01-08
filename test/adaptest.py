@@ -3,7 +3,7 @@ from filters import utils, kernelize as k
 import numpy as np
 import astropy.wcs as a
 
-filepath = '../data/3s.fits'
+filepath = '../img/3s_strong_noise.fits'
 img = utils.get_data(filepath)
 
 niter = 1
@@ -29,7 +29,7 @@ while True:
 	else:
 		print(key)
 
-	smoothed = k.gaussian_median(img, 3, 7, niter)
+	smoothed = k.median_gaussian(img, 3, 7, niter)
 	segmented = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, blockSize, const)
 
 	#mask = cv2.dilate(mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=1)
@@ -87,4 +87,4 @@ while True:
 
 	print('======================================blockSize, const =' + str([blockSize, const]))
 
-	utils.show2(Original=im_with_keypoints, Smoothed=smoothed, Dilated=mask)
+	utils.show2(Original=im_with_keypoints, Smoothed=smoothed)
