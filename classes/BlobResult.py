@@ -39,7 +39,7 @@ class BlobResult:
 		return
 
 	def print_values(self):
-		print("Barycenter: {0}".format(self.bary))
-		print("Radius: {0}".format(self.radius))
-		print("RA,Dec: ({0},{1})".format(self.radec[0], self.radec[1]))
+		print("Barycenter: ({0}, {1})".format(np.round(self.bary[0],2),np.round(self.bary[1],2)))
+		print("Radius: {0}".format(np.round(self.radius, 3)))
+		print("RA,Dec: ({0}, {1})".format(np.round(self.radec[0], 3), np.round(self.radec[1], 3)))
 		return
