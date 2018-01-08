@@ -30,6 +30,7 @@ class Extractor:
 		# Filter map
 		smoothed = k.gaussian_median(img, 3, 7, 1)
 		localled = self.local_stretching()
+		#localled = self.local_equalization(smoothed)
 		time.toggle_time("smoothing")
 
 		# Binary segmentation and binary morphology
@@ -139,4 +140,18 @@ class Extractor:
 				# localled[y:y + ksize, x:x + ksize] = np.multiply(255/(rmax-rmin), (window-rmin))
 
 		#utils.show(Original=img, Smoothed=smoothed, Local=localled)
+		return localled
+
+	def local_equalization(self, smoothed):
+		time = timer.TimeChecker()
+		# Open fits map
+		img = utils.get_data(self.fits_path)
+		print("loaded map: {0}".format(self.fits_path))
+
+		time.toggle_time("read")
+
+		# Filter map
+		clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(20, 20))
+		localled = clahe.apply(smoothed)
+
 		return localled
