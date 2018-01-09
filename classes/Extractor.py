@@ -34,8 +34,9 @@ class Extractor:
 		self.AD_block_size = 13
 		self.AD_const = -7
 
-		self.print_intermediate = True
+		self.print_intermediate = False
 
+		print('=================================')
 		print('Extractor initialised')
 		return
 
@@ -127,13 +128,15 @@ class Extractor:
 			current_blob.print_values()
 
 			buffer.write(current_blob.make_xml_blob()+'\n')
-		print('=================================')
+		print('----------------------------------')
 
 		time.toggle_time("blob extraction")
 		time.total()
 
-		utils.show2(Blobbed=im_with_keypoints, Original=img)
+		utils.show(Blobbed=im_with_keypoints, Original=img)
 
+		print('Done!')
+		print('=================================')
 		return utils.create_xml(buffer.getvalue(),self.relative_path)
 
 	def local_stretching(self, smoothed, ksize=15, step_size=5, min_bins=1):
@@ -149,7 +152,7 @@ class Extractor:
 				localled[y:y + ksize, x:x + ksize] = window1
 
 		if self.print_intermediate:
-			utils.show2(Smoothed=smoothed, Local=localled)
+			utils.show(Smoothed=smoothed, Local=localled)
 		return localled
 
 	def local_equalization(self, smoothed, ksize=15, clip_limit=2.0):
@@ -158,5 +161,5 @@ class Extractor:
 		localled = clahe.apply(smoothed)
 
 		if self.print_intermediate:
-			utils.show2(Smoothed=smoothed, Local=localled)
+			utils.show(Smoothed=smoothed, Local=localled)
 		return localled
