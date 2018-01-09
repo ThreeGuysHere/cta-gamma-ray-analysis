@@ -23,9 +23,9 @@ class Extractor:
 		self.local_mode = 0
 		self.threshold_mode = 0
 
-		self.local_stretch_ksize = 21
+		self.local_stretch_ksize = 15
 		self.local_stretch_step_size = 5
-		self.local_stretch_min_bins = 5
+		self.local_stretch_min_bins = 1
 
 		self.local_eq_ksize = 15
 		self.local_eq_clip_limit = 2.0
@@ -57,19 +57,21 @@ class Extractor:
 
 		smoothed = k.median_gaussian(img, self.median_iter, self.median_ksize, self.gaussian_iter, self.gaussian_ksize)
 
-		if self.local_mode:
+		if self.local_mode == 0:
 			localled = self.local_stretching(smoothed, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins)
-		else:
+		elif self.local_mode == 1:
 			localled = self.local_equalization(smoothed, self.local_eq_ksize, self.local_eq_clip_limit)
 
 		time.toggle_time("smoothing")
 
 		# Binary segmentation and binary morphology
 		# TODO: tuning parametri per condizioni variabili
-		if self.threshold_mode:
+		if self.threshold_mode == 0:
 			segmented = cv2.adaptiveThreshold(localled, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, self.AD_block_size, self.AD_const)
-		else:
+		elif self.threshold_mode == 1:
 			segmented = cv2.threshold(localled, 127, 255, cv2.THRESH_BINARY)[1]
+
+
 		# TODO: sorgenti grandi "da riempire": dilation
 		# TODO: sorgenti piccole "deboli": dilation (attenzione a non eliminarle con erosion)
 		# TODO: sorgenti sovrapposte: erosion (ma attenzione a quanta, si rischia di eliminare sorgenti deboli)
@@ -133,7 +135,7 @@ class Extractor:
 
 		return utils.create_xml(buffer.getvalue())
 
-	def local_stretching(self, smoothed, ksize=21, step_size=5, min_bins=1):
+	def local_stretching(self, smoothed, ksize=15, step_size=5, min_bins=1):
 		# Filter map
 		localled = smoothed.copy()
 
@@ -146,7 +148,7 @@ class Extractor:
 				localled[y:y + ksize, x:x + ksize] = window1
 
 		if self.print_intermediate:
-			utils.show(Smoothed=smoothed, Local=localled)
+			utils.show2(Smoothed=smoothed, Local=localled)
 		return localled
 
 	def local_equalization(self, smoothed, ksize=15, clip_limit=2.0):
@@ -155,5 +157,5 @@ class Extractor:
 		localled = clahe.apply(smoothed)
 
 		if self.print_intermediate:
-			utils.show(Smoothed=smoothed, Local=localled)
+			utils.show2(Smoothed=smoothed, Local=localled)
 		return localled
