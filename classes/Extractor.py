@@ -37,6 +37,10 @@ class Extractor:
 		self.adaptive_block_size = 13
 		self.adaptive_const = -7
 
+		self.morph_type = cv2.MORPH_OPEN
+		self.morph_shape = cv2.MORPH_ELLIPSE
+		self.morph_size = 7
+
 		self.print_intermediate = False
 
 		print('Extractor initialised')
@@ -45,8 +49,6 @@ class Extractor:
 	def perform_extraction(self):
 		"""
 		Identifies the gamma-ray source coordinates (RA,Dec) from the input map and creates a xml file for ctlike
-		:param local: TODO
-		:param adaptive: TODO
 		:return: (ra,dec) coordinates of the source and the path of the output xml
 		"""
 
@@ -66,11 +68,7 @@ class Extractor:
 
 		# Binary segmentation and binary morphology
 		segmented = self.segmentation(self.threshold_mode)(localled)
-
-		segmented = cv2.morphologyEx(segmented, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)))
-		# segmented = cv2.erode(segmented, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 1)), iterations=2)
-		# segmented = cv2.dilate(segmented, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2)), iterations=1)
-
+		segmented = self.morphology(segmented)
 		time.toggle_time("segmentation")
 
 		# Blob detection
@@ -132,8 +130,11 @@ class Extractor:
 	def local_equalization(self, img):
 		return k.local_equalization(img, self.local_eq_ksize, self.local_eq_clip_limit, self.print_intermediate)
 
-	def adaptiveThreshold(self, img):
+	def adaptive_threshold(self, img):
 		return cv2.adaptiveThreshold(img, 255, self.adaptive_filtering, cv2.THRESH_BINARY, self.adaptive_block_size, self.adaptive_const)
+
+	def morphology(self, img):
+		return cv2.morphologyEx(img, self.morph_type, cv2.getStructuringElement(self.morph_shape, (self.morph_size, self.morph_size)))
 
 	def load_config(self, filepath):
 		conf_file = open(filepath, "r")
@@ -147,30 +148,38 @@ class Extractor:
 			self.gaussian_iter = utils.convert_node_value(root.filtering.gaussian.iterations)
 			self.gaussian_ksize = utils.convert_node_value(root.filtering.gaussian.kernelsize)
 			self.gaussian_sigma = utils.convert_node_value(root.filtering.gaussian.sigma)
-		if root.localtransformation.type.string == "Stretching":
-			self.local_mode = "stretching"
+
+		self.local_mode = str(root.localtransformation.type.string)
+		if self.local_mode == "Stretching":
 			self.local_stretch_ksize = utils.convert_node_value(root.localtransformation.kernelsize)
 			self.local_stretch_step_size = utils.convert_node_value(root.localtransformation.stepsize)
 			self.local_stretch_min_bins = utils.convert_node_value(root.localtransformation.minbins)
-		elif root.localtransformation.type.string == "Equalization":
-			self.local_mode = "equalization"
+		elif self.local_mode == "Equalization":
 			self.local_eq_ksize = utils.convert_node_value(root.localtransformation.kernelsize)
 			self.local_eq_clip_limit = utils.convert_node_value(root.localtransformation.stepsize)
-		if root.segmentation.type.string == "Adaptive":
-			self.threshold_mode = "adaptive"
-			self.adaptive_filtering = self.adaptive_filter(utils.convert_node_value(root.segmentation.filter, "string")) #TODO lower
+
+		self.threshold_mode = str(root.segmentation.type.string)
+		if self.threshold_mode == "Adaptive":
+			self.adaptive_filtering = self.adaptive_filter(utils.convert_node_value(root.segmentation.filter, "string"))
+			self.adaptive_block_size = utils.convert_node_value(root.segmentation.blocksize)
+			self.adaptive_const = utils.convert_node_value(root.segmentation.constant)
+
+		if root.binarymorphology:
+			self.morph_type = self.morph_operator(utils.convert_node_value(root.binarymorphology.type, "string"))
+			self.morph_shape = self.set_morph_shape(utils.convert_node_value(root.binarymorphology.shape, "string"))
+			self.morph_size = utils.convert_node_value(root.binarymorphology.size)
 
 		return
 
 	def local_transformation(self, x):
 		return {
-			"stretching": self.local_stretching,
-			"equalization": self.local_equalization,
+			"Stretching": self.local_stretching,
+			"Equalization": self.local_equalization,
 		}.get(x, utils.perror("local transformation"))
 
 	def segmentation(self, x):
 		return {
-			"adaptive": self.adaptiveThreshold,
+			"Adaptive": self.adaptive_threshold,
 		}.get(x, utils.perror("segmentation"))
 
 	def filter(self, x):
@@ -185,3 +194,14 @@ class Extractor:
 			"Gaussian": cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
 		}.get(x, utils.perror("adaptive filter"))
 
+	def set_morph_shape(self, x):
+		return {
+			"Ellipse": cv2.MORPH_ELLIPSE,
+			"Cross": cv2.MORPH_CROSS,
+		}.get(x, utils.perror("morphology shape"))
+
+	def morph_operator(self, x):
+		return {
+			"Opening": cv2.MORPH_OPEN,
+			"Closing": cv2.MORPH_CLOSE,
+		}.get(x, utils.perror("local transformation"))

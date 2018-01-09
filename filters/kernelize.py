@@ -73,7 +73,6 @@ def median_gaussian(src, median_iter=1, mksize=7, gaussian_iter=1, gksize=3):
     # cv2.normalize(output, output, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
     return output
 
-
 def local_stretching(smoothed, ksize=15, step_size=5, min_bins=1, debug_prints=False):
     # Filter map
     localled = smoothed.copy()
