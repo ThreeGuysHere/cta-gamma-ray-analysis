@@ -11,7 +11,9 @@ run = True
 while True:
 	if run:
 		ext = Extractor.Extractor(fits_names[index])
+		ext.load_config("../data/cta-config.xml")
 		xml = ext.perform_extraction()
+
 		print("output_xml_path = {0}".format(xml))
 
 	key = cv2.waitKey(0)

@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+from filters import utils
 
 
 def gray_gaussian_mask_at(img, coords):
@@ -72,3 +73,29 @@ def median_gaussian(src, median_iter=1, mksize=7, gaussian_iter=1, gksize=3):
     # cv2.normalize(output, output, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
     return output
 
+
+def local_stretching(smoothed, ksize=15, step_size=5, min_bins=1, debug_prints=False):
+    # Filter map
+    localled = smoothed.copy()
+
+    for (x, y, window) in utils.sliding_window(smoothed, stepSize=step_size, windowSize=(ksize, ksize)):
+        local_hist = cv2.calcHist([window], [0], None, [256], [0, 255])
+        bins = np.count_nonzero(local_hist)
+        if bins > min_bins:
+            window1 = window.copy()
+            cv2.normalize(window1, window1, 0, 255, cv2.NORM_MINMAX)
+            localled[y:y + ksize, x:x + ksize] = window1
+
+    if debug_prints:
+        utils.show(Smoothed=smoothed, Local=localled)
+    return localled
+
+
+def local_equalization(smoothed, ksize=15, clip_limit=2.0, debug_prints=False):
+    # Filter map
+    clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=(ksize, ksize))
+    localled = clahe.apply(smoothed)
+
+    if debug_prints:
+        utils.show(Smoothed=smoothed, Local=localled)
+    return localled

@@ -20,22 +20,18 @@
       <minBins>5</minBins>
    </localTransformation>
   
-   <localTransformation>
-      <!-- Equalization parameters -->
-      <type>Equalization</type>
-      <kernelSize>15</kernelSize>
-      <clipLimit>2.0</clipLimit>
-   </localTransformation> 
+   <!--<localTransformation>-->
+      <!--&lt;!&ndash; Equalization parameters &ndash;&gt;-->
+      <!--<type>Equalization</type>-->
+      <!--<kernelSize>15</kernelSize>-->
+      <!--<clipLimit>2.0</clipLimit>-->
+   <!--</localTransformation> -->
 
    <segmentation>
       <type>Adaptive</type>
       <filter>Mean</filter> <!-- Mean/Gaussian -->
       <blockSize>13</blockSize>
       <constant>-7</constant>
-   </segmentation>
-   <segmentation>
-      <type>Thresholding</type>
-      <threshold>127</threshold>
    </segmentation>
 
    <binaryMorphology>

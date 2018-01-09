@@ -3,6 +3,7 @@ from classes import TimeChecker as timer, BlobResult as blob
 import cv2
 import numpy as np
 from io import StringIO
+from bs4 import BeautifulSoup
 
 
 class Extractor:
@@ -17,11 +18,13 @@ class Extractor:
 		# instanzia il lettore
 		self.median_iter = 1
 		self.median_ksize = 7
+
 		self.gaussian_iter = 1
 		self.gaussian_ksize = 3
+		self.gaussian_sigma = -1
 
-		self.local_mode = 0
-		self.threshold_mode = 0
+		self.local_mode = "stretching"
+		self.threshold_mode = "adaptive"
 
 		self.local_stretch_ksize = 15
 		self.local_stretch_step_size = 5
@@ -30,10 +33,11 @@ class Extractor:
 		self.local_eq_ksize = 15
 		self.local_eq_clip_limit = 2.0
 
-		self.AD_block_size = 13
-		self.AD_const = -7
+		self.adaptive_filtering = cv2.ADAPTIVE_THRESH_MEAN_C
+		self.adaptive_block_size = 13
+		self.adaptive_const = -7
 
-		self.print_intermediate = True
+		self.print_intermediate = False
 
 		print('Extractor initialised')
 		return
@@ -50,32 +54,19 @@ class Extractor:
 		# Open fits map
 		img = utils.get_data(self.fits_path)
 		print("loaded map: {0}".format(self.fits_path))
-
 		time.toggle_time("read")
 
 		# Filter map
-
 		smoothed = k.median_gaussian(img, self.median_iter, self.median_ksize, self.gaussian_iter, self.gaussian_ksize)
-
-		if self.local_mode == 0:
-			localled = self.local_stretching(smoothed, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins)
-		elif self.local_mode == 1:
-			localled = self.local_equalization(smoothed, self.local_eq_ksize, self.local_eq_clip_limit)
-
 		time.toggle_time("smoothing")
 
+		# Contrast Enhancing
+		localled = self.local_transformation(self.local_mode)(smoothed)
+		time.toggle_time("contrast enhancing")
+
 		# Binary segmentation and binary morphology
-		# TODO: tuning parametri per condizioni variabili
-		if self.threshold_mode == 0:
-			segmented = cv2.adaptiveThreshold(localled, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, self.AD_block_size, self.AD_const)
-		elif self.threshold_mode == 1:
-			segmented = cv2.threshold(localled, 127, 255, cv2.THRESH_BINARY)[1]
+		segmented = self.segmentation(self.threshold_mode)(localled)
 
-
-		# TODO: sorgenti grandi "da riempire": dilation
-		# TODO: sorgenti piccole "deboli": dilation (attenzione a non eliminarle con erosion)
-		# TODO: sorgenti sovrapposte: erosion (ma attenzione a quanta, si rischia di eliminare sorgenti deboli)
-		# TODO: rumore spurio: erosion ma stesso discorso di sopra (o median filter a posteriori)
 		segmented = cv2.morphologyEx(segmented, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)))
 		# segmented = cv2.erode(segmented, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 1)), iterations=2)
 		# segmented = cv2.dilate(segmented, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2)), iterations=1)
@@ -131,31 +122,66 @@ class Extractor:
 		time.toggle_time("blob extraction")
 		time.total()
 
-		utils.show2(Blobbed=im_with_keypoints, Original=img)
+		utils.show(Blobbed=im_with_keypoints, Original=img)
 
 		return utils.create_xml(buffer.getvalue())
 
-	def local_stretching(self, smoothed, ksize=15, step_size=5, min_bins=1):
-		# Filter map
-		localled = smoothed.copy()
+	def local_stretching(self, img):
+		return k.local_stretching(img, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins, self.print_intermediate)
 
-		for (x, y, window) in utils.sliding_window(smoothed, stepSize=step_size, windowSize=(ksize, ksize)):
-			local_hist = cv2.calcHist([window], [0], None, [256], [0, 255])
-			bins = np.count_nonzero(local_hist)
-			if bins > min_bins:
-				window1 = window.copy()
-				cv2.normalize(window1, window1, 0, 255, cv2.NORM_MINMAX)
-				localled[y:y + ksize, x:x + ksize] = window1
+	def local_equalization(self, img):
+		return k.local_equalization(img, self.local_eq_ksize, self.local_eq_clip_limit, self.print_intermediate)
 
-		if self.print_intermediate:
-			utils.show2(Smoothed=smoothed, Local=localled)
-		return localled
+	def adaptiveThreshold(self, img):
+		return cv2.adaptiveThreshold(img, 255, self.adaptive_filtering, cv2.THRESH_BINARY, self.adaptive_block_size, self.adaptive_const)
 
-	def local_equalization(self, smoothed, ksize=15, clip_limit=2.0):
-		# Filter map
-		clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=(ksize, ksize))
-		localled = clahe.apply(smoothed)
+	def load_config(self, filepath):
+		conf_file = open(filepath, "r")
+		config = BeautifulSoup(conf_file, "html.parser")
+		conf_file.close()
+		root = config.gammarayanalysis
+		if root.filtering.median:
+			self.median_iter = utils.convert_node_value(root.filtering.median.iterations)
+			self.median_ksize = utils.convert_node_value(root.filtering.median.kernelsize)
+		if root.filtering.gaussian:
+			self.gaussian_iter = utils.convert_node_value(root.filtering.gaussian.iterations)
+			self.gaussian_ksize = utils.convert_node_value(root.filtering.gaussian.kernelsize)
+			self.gaussian_sigma = utils.convert_node_value(root.filtering.gaussian.sigma)
+		if root.localtransformation.type.string == "Stretching":
+			self.local_mode = "stretching"
+			self.local_stretch_ksize = utils.convert_node_value(root.localtransformation.kernelsize)
+			self.local_stretch_step_size = utils.convert_node_value(root.localtransformation.stepsize)
+			self.local_stretch_min_bins = utils.convert_node_value(root.localtransformation.minbins)
+		elif root.localtransformation.type.string == "Equalization":
+			self.local_mode = "equalization"
+			self.local_eq_ksize = utils.convert_node_value(root.localtransformation.kernelsize)
+			self.local_eq_clip_limit = utils.convert_node_value(root.localtransformation.stepsize)
+		if root.segmentation.type.string == "Adaptive":
+			self.threshold_mode = "adaptive"
+			self.adaptive_filtering = self.adaptive_filter(utils.convert_node_value(root.segmentation.filter, "string")) #TODO lower
 
-		if self.print_intermediate:
-			utils.show2(Smoothed=smoothed, Local=localled)
-		return localled
+		return
+
+	def local_transformation(self, x):
+		return {
+			"stretching": self.local_stretching,
+			"equalization": self.local_equalization,
+		}.get(x, utils.perror("local transformation"))
+
+	def segmentation(self, x):
+		return {
+			"adaptive": self.adaptiveThreshold,
+		}.get(x, utils.perror("segmentation"))
+
+	def filter(self, x):
+		return {
+			"median": self.median_filtering,
+			"gaussian": self.gaussian_filtering,
+		}.get(x, utils.perror("filter"))
+
+	def adaptive_filter(self, x):
+		return {
+			"Mean": cv2.ADAPTIVE_THRESH_MEAN_C,
+			"Gaussian": cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+		}.get(x, utils.perror("adaptive filter"))
+

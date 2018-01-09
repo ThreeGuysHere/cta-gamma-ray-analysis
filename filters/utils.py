@@ -1,6 +1,7 @@
 from astropy.io import fits
 import numpy as np
 import cv2
+from bs4 import BeautifulSoup
 
 #  screen info
 screen_width = 1920
@@ -106,3 +107,15 @@ def sliding_window(image, stepSize, windowSize):
 		for x in range(0, image.shape[1] - int(windowSize[1]) + 1, stepSize):
 			# yield the current window
 			yield (x, y, image[y:y + windowSize[1], x:x + windowSize[0]])
+
+
+def perror(error):
+	print("Error value: {0}".format(error))
+
+
+def convert_node_value(value, type='int'):
+	return {
+		'int': lambda x: int(x.string),
+		'float': lambda x: float(x.string),
+		'string': lambda x: x.string,
+	}[type](value)
