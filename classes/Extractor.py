@@ -7,11 +7,12 @@ from io import StringIO
 
 class Extractor:
 
-	def __init__(self, fits_path=None, xml_input_path=None):
+	def __init__(self, fits_path=None, relative_path="../", xml_input_path=None):
 		"""
 		Constructor
 		"""
 		self.fits_path = fits_path
+		self.relative_path = relative_path
 		self.xml_input_path = xml_input_path
 
 		# instanzia il lettore
@@ -117,7 +118,7 @@ class Extractor:
 
 		for keyPoint in keypoints:
 			print('----------------------------------')
-			current_blob = blob.BlobResult(self.fits_path, index)
+			current_blob = blob.BlobResult(self.fits_path, index, self.relative_path)
 			index = index + 1
 
 			current_blob.set_bary(keyPoint.pt)
@@ -125,7 +126,7 @@ class Extractor:
 			current_blob.set_mask(img.shape)
 			current_blob.print_values()
 
-			buffer.write(current_blob.make_xml_blob())
+			buffer.write(current_blob.make_xml_blob()+'\n')
 		print('=================================')
 
 		time.toggle_time("blob extraction")
@@ -133,7 +134,7 @@ class Extractor:
 
 		utils.show2(Blobbed=im_with_keypoints, Original=img)
 
-		return utils.create_xml(buffer.getvalue())
+		return utils.create_xml(buffer.getvalue(),self.relative_path)
 
 	def local_stretching(self, smoothed, ksize=15, step_size=5, min_bins=1):
 		# Filter map

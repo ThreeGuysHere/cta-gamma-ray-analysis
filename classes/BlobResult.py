@@ -4,12 +4,13 @@ import numpy as np
 
 class BlobResult:
 
-	def __init__(self, fits_path, index):
+	def __init__(self, fits_path, index, relative_path):
 		"""
 		Constructor
 		"""
 		self.path_map = fits_path
 		self.index = index
+		self.relative_path = relative_path
 		self.bary = None
 		self.diam = None
 		self.radius = None
@@ -40,7 +41,7 @@ class BlobResult:
 		return
 
 	def make_xml_blob(self):
-		with open("../data/blob_model.xml", 'r') as model_xml:
+		with open(self.relative_path+"data/blob_model.xml", 'r') as model_xml:
 			# read model
 			parametrized = model_xml.read()
 
