@@ -16,16 +16,16 @@ class Extractor:
 
 		# instanzia il lettore
 		self.median_iter = 1
-		self.median_ksize = 5  # XML_Reader.median_kernel_size
+		self.median_ksize = 7
 		self.gaussian_iter = 1
-		self.gaussian_ksize = 3  # XML_Reader.gaussian_kernel_size
+		self.gaussian_ksize = 3
 
 		self.local_mode = 0
 		self.threshold_mode = 0
 
-		self.local_stretch_ksize = 15
+		self.local_stretch_ksize = 21
 		self.local_stretch_step_size = 5
-		self.local_stretch_min_bins = 1
+		self.local_stretch_min_bins = 5
 
 		self.local_eq_ksize = 15
 		self.local_eq_clip_limit = 2.0
@@ -33,7 +33,7 @@ class Extractor:
 		self.AD_block_size = 13
 		self.AD_const = -7
 
-		self.print_intermediate = False
+		self.print_intermediate = True
 
 		print('Extractor initialised')
 		return
@@ -133,7 +133,6 @@ class Extractor:
 
 		return utils.create_xml(buffer.getvalue())
 
-
 	def local_stretching(self, smoothed, ksize=21, step_size=5, min_bins=1):
 		# Filter map
 		localled = smoothed.copy()
@@ -149,7 +148,6 @@ class Extractor:
 		if self.print_intermediate:
 			utils.show(Smoothed=smoothed, Local=localled)
 		return localled
-
 
 	def local_equalization(self, smoothed, ksize=15, clip_limit=2.0):
 		# Filter map
