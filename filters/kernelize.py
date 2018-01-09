@@ -51,7 +51,7 @@ def get_gaussian_kernel(ksize, sigma=-1):
     return cv2.getGaussianKernel(ksize, sigma) * np.matrix.transpose(cv2.getGaussianKernel(ksize, sigma))
 
 
-def median_gaussian(src, median_iter=1, mksize=7, gaussian_iter=1, gksize=3):
+def median_gaussian(src, median_iter=0, mksize=7, gaussian_iter=0, gksize=3):
     """
     Computes a gaussian and a medial 2D filter nsteps times.
     :param src: source image

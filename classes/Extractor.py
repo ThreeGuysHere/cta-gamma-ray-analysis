@@ -15,16 +15,25 @@ class Extractor:
 		self.xml_input_path = xml_input_path
 
 		# instanzia il lettore
+		self.median_iter = 1
+		self.median_ksize = 5  # XML_Reader.median_kernel_size
+		self.gaussian_iter = 1
 		self.gaussian_ksize = 3  # XML_Reader.gaussian_kernel_size
-		self.median_ksize = 7  # XML_Reader.median_kernel_size
-		self.niter_gau_med = 1
-		self.AD_block_size = 13
-		self.AD_const = -7
+
 		self.local_mode = 0
 		self.threshold_mode = 0
-		self.local_stretching_ksize = 15
-		self.print_intermediate = False
 
+		self.local_stretch_ksize = 15
+		self.local_stretch_step_size = 5
+		self.local_stretch_min_bins = 1
+
+		self.local_eq_ksize = 15
+		self.local_eq_clip_limit = 2.0
+
+		self.AD_block_size = 13
+		self.AD_const = -7
+
+		self.print_intermediate = False
 
 		print('Extractor initialised')
 		return
@@ -46,28 +55,19 @@ class Extractor:
 
 		# Filter map
 
-		if self.niter_gau_med:
-			smoothed = k.median_gaussian(img, self.gaussian_ksize, self.median_ksize)
+		smoothed = k.median_gaussian(img, self.median_iter, self.median_ksize, self.gaussian_iter, self.gaussian_ksize)
 
-		if self.median_ksize:
-			smoothed = k.median(img, self.median_ksize)
-
-		if self.gaussian_ksize:
-			smoothed = k.gaussian(img, self.gaussian_ksize)
-
-		if self.local:
-			localled = self.local_stretching(smoothed,)
-		elif
-			localled = self.local_equalization()
+		if self.local_mode:
+			localled = self.local_stretching(smoothed, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins)
+		else:
+			localled = self.local_equalization(smoothed, self.local_eq_ksize, self.local_eq_clip_limit)
 
 		time.toggle_time("smoothing")
 
 		# Binary segmentation and binary morphology
 		# TODO: tuning parametri per condizioni variabili
-		segmented =
-		if threshold:
-			segmented = cv2.adaptiveThreshold(localled, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,
-											  self.AD_block_size, self.AD_const)
+		if self.threshold_mode:
+			segmented = cv2.adaptiveThreshold(localled, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, self.AD_block_size, self.AD_const)
 		else:
 			segmented = cv2.threshold(localled, 127, 255, cv2.THRESH_BINARY)[1]
 		# TODO: sorgenti grandi "da riempire": dilation
