@@ -28,6 +28,9 @@ while True:
 		run = False
 
 
-
+# # cercare il massimo + neighbour al n%
+# masked_original = np.multiply(smoothed, el.mask)
+# center_intensity = np.argwhere(masked_original >= int(np.amax(masked_original)*0.95))
+# print(center_intensity)
 
 cv2.destroyAllWindows()

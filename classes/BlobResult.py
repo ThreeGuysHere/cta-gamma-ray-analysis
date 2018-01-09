@@ -4,11 +4,12 @@ import numpy as np
 
 class BlobResult:
 
-	def __init__(self, fits_path):
+	def __init__(self, fits_path, index):
 		"""
 		Constructor
 		"""
 		self.path_map = fits_path
+		self.index = index
 		self.bary = None
 		self.diam = None
 		self.radius = None
@@ -37,6 +38,18 @@ class BlobResult:
 				msk[xkp + i, ykp + j] = 1
 		self.mask = msk.astype(np.uint8)
 		return
+
+	def make_xml_blob(self):
+		with open("../data/blob_model.xml", 'r') as model_xml:
+			# read model
+			parametrized = model_xml.read()
+
+			# replace params
+			parametrized = parametrized.replace("SPOT_NAME", "SPOT_{0}".format(self.index))
+			parametrized = parametrized.replace("FOUND_RA", str(self.radec[0]))
+			parametrized = parametrized.replace("FOUND_DEC", str(self.radec[1]))
+
+		return parametrized
 
 	def print_values(self):
 		print("Barycenter: ({0}, {1})".format(np.round(self.bary[0],2),np.round(self.bary[1],2)))

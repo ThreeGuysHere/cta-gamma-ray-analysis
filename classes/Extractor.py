@@ -2,6 +2,7 @@ from filters import kernelize as k, utils, centroid_extraction as ce
 from classes import TimeChecker as timer, BlobResult as blob
 import cv2
 import numpy as np
+from io import StringIO
 
 
 class Extractor:
@@ -84,38 +85,29 @@ class Extractor:
 		# # Overlap keypoints and original image
 		im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
-		blob_array = []
+		# Create output file
+		index = 0
+		buffer = StringIO()
+
 		for keyPoint in keypoints:
-			current_blob = blob.BlobResult(self.fits_path)
+			print('----------------------------------')
+			current_blob = blob.BlobResult(self.fits_path, index)
+			index = index + 1
+
 			current_blob.set_bary(keyPoint.pt)
 			current_blob.set_diameter(keyPoint.size)
 			current_blob.set_mask(img.shape)
+			current_blob.print_values()
 
-			blob_array.append(current_blob)
+			buffer.write(current_blob.make_xml_blob())
+		print('=================================')
 
 		time.toggle_time("blob extraction")
 		time.total()
 
-		for el in blob_array:
-			print('----------------------------------')
-			el.print_values()
-
-			# # Same results
-			# center, area, radius, _ = ce.find_weighted_centroid(smoothed, el.mask)
-			# el.bary = center
-			# el.diam = 2*radius
-			# print("center = {0}\narea = {1}\nradius = {2}\nRA,Dec = ({3},{4})".format(center, area, radius, el.radec[0], el.radec[1]))
-		print('=================================')
-
 		utils.show2(Blobbed=im_with_keypoints, Original=img)
 
-		# # cercare il massimo + neighbour al n%
-		# masked_original = np.multiply(smoothed, el.mask)
-		# center_intensity = np.argwhere(masked_original >= int(np.amax(masked_original)*0.95))
-		# print(center_intensity)
-
-		# create output xml file coi risultati
-		return '/stay/tuned.xml'
+		return utils.create_xml(buffer.getvalue())
 
 	def local_stretching(self, smoothed, ksize=21, step_size=5, print_int=False):
 		# Filter map

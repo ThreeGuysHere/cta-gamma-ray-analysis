@@ -66,31 +66,21 @@ def show2(**kwargs):
 		y += dy if screen_end else 0
 
 
-def create_xml(model, output, pnt_type="equatorial", ra=83.64, dec=22.02, obsid=1, start=0.0, duration=100.0,
-				emin=0.1, emax=100, caldb="prod2", fov=10, irf="South_0.5h"):
-	with open(model, 'r') as model_xml:
-		with open(output, 'w') as output_file:
+def create_xml(sources):
+	output_file_path = "../detected.xml"
+	with open("../data/output_model.xml", 'r') as model_xml:
+		with open(output_file_path, 'w') as output_file:
 
 			# read model
 			parametrized = model_xml.read()
 
 			# replace params
-			parametrized = parametrized.replace("PNT", str(pnt_type))
-			parametrized = parametrized.replace("RAX", str(ra))
-			parametrized = parametrized.replace("DEC", str(dec))
-			parametrized = parametrized.replace("OBS", str(obsid))
-			parametrized = parametrized.replace("STR", str(start))
-			parametrized = parametrized.replace("DUR", str(duration))
-			parametrized = parametrized.replace("EMI", str(emin))
-			parametrized = parametrized.replace("EMA", str(emax))
-			parametrized = parametrized.replace("CAL", str(caldb))
-			parametrized = parametrized.replace("FOV", str(fov))
-			parametrized = parametrized.replace("IRF", str(irf))
+			parametrized = parametrized.replace("FOUND_SOURCES", str(sources))
 
 			# write replaced
 			output_file.write(parametrized)
 
-	return parametrized
+	return output_file_path
 
 
 def plot3d(src):
