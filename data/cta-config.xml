@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<gammaRayAnalysis>
+   <filtering>
+      <median>
+         <kernelSize>7</kernelSize>
+         <iterations>1</iterations>
+      </median>
+      <gaussian>
+         <kernelSize>3</kernelSize>
+         <sigma>-1</sigma>
+         <iterations>1</iterations>
+      </gaussian>
+   </filtering>
+
+   <localTransformation>
+      <!-- Stretching Parameters -->
+      <type>Stretching</type>
+      <kernelSize>21</kernelSize>
+      <stepSize>5</stepSize>
+      <minBins>5</minBins>
+   </localTransformation>
+  
+   <localTransformation>
+      <!-- Equalization parameters -->
+      <type>Equalization</type>
+      <kernelSize>15</kernelSize>
+      <clipLimit>2.0</clipLimit>
+   </localTransformation> 
+
+   <segmentation>
+      <type>Adaptive</type>
+      <filter>Mean</filter> <!-- Mean/Gaussian -->
+      <blockSize>13</blockSize>
+      <constant>-7</constant>
+   </segmentation>
+   <segmentation>
+      <type>Thresholding</type>
+      <threshold>127</threshold>
+   </segmentation>
+
+   <binaryMorphology>
+      <type>Opening</type> <!-- Opening/Closing/Erosion/Dilation -->
+      <shape>Ellipse</shape>
+      <size>7</size>
+   </binaryMorphology>
+   <!-- MISC -->
+   <debugPrints>False</debugPrints>
+</gammaRayAnalysis>
