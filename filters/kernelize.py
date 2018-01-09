@@ -41,7 +41,7 @@ def gaussian_mask(img):
     return mask
 
 
-def get_gaussian_kernel(ksize,sigma=-1):
+def get_gaussian_kernel(ksize, sigma=-1):
     """
     Returns a Gaussian Kernel ksize * ksize
     :param ksize: kernel size
@@ -51,7 +51,16 @@ def get_gaussian_kernel(ksize,sigma=-1):
     return cv2.getGaussianKernel(ksize, sigma) * np.matrix.transpose(cv2.getGaussianKernel(ksize, sigma))
 
 
-def median_gaussian(src, gksize, mksize, nsteps):
+def median(src, mksize):
+    return cv2.medianBlur(src, mksize)
+
+
+def gaussian(src, gksize,  sigma=-1):
+    gaussian_kernel = get_gaussian_kernel(gksize)
+    return cv2.filter2D(src, sigma, gaussian_kernel)
+
+
+def median_gaussian(src, gksize, mksize, nsteps=1):
     """
     Computes a gaussian and a medial 2D filter nsteps times.
     :param src: source image
@@ -61,11 +70,10 @@ def median_gaussian(src, gksize, mksize, nsteps):
     :return:
     """
     output = src.copy()
-    gaussian_kernel = get_gaussian_kernel(gksize)
 
     for i in range(nsteps):
-        output = cv2.medianBlur(output, mksize)
-        output = cv2.filter2D(output, -1, gaussian_kernel)
+        output = median(output, mksize)
+        output = gaussian(output, gksize)
 
     # cv2.normalize(output, output, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
     return output

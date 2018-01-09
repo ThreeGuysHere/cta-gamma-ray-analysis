@@ -20,7 +20,6 @@ while True:
 	elif key == 83 and index < len(fits_names)-1:  # right
 		index += 1
 		run = True
-
 	elif key == 81 and index > 0:  # left
 		index -= 1
 		run = True

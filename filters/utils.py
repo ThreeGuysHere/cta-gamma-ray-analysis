@@ -3,16 +3,11 @@ import numpy as np
 import cv2
 
 #  screen info
-screen_width = 1650
-screen_height = 1050
-dx = int(screen_width / 3)
+screen_width = 1920
+screen_height = 1200
+dx = int(screen_width / 4)
 dy = int(screen_height / 2)
 label_bar_height = 65
-
-
-def img_prepare(src):
-	cv2.normalize(src, src, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
-	return src.astype(np.uint8)
 
 
 def normalize(src):
@@ -23,7 +18,6 @@ def normalize(src):
 
 
 def get_data(src):
-	# Overflow aware version
 	data = fits.getdata(src)
 	data = normalize(data)
 	return data.astype(np.uint8)
