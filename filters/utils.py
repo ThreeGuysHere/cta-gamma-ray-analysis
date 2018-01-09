@@ -24,14 +24,9 @@ def normalize(src):
 
 def get_data(src):
 	# Overflow aware version
-	# data = fits.getdata(src)
-	# data = normalize(data)
-	# return data.astype(np.uint8)
-
-	# TRUNC version
 	data = fits.getdata(src)
-	img = data.astype(np.uint16)
-	return img_prepare(img)
+	data = normalize(data)
+	return data.astype(np.uint8)
 
 
 def show(**kwargs):

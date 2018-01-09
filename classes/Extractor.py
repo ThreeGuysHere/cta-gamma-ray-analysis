@@ -117,20 +117,11 @@ class Extractor:
 		# create output xml file coi risultati
 		return '/stay/tuned.xml'
 
-	def local_stretching(self, smoothed, print_int=False):
-		time = timer.TimeChecker()
-		# Open fits map
-		img = utils.get_data(self.fits_path)
-		print("loaded map: {0}".format(self.fits_path))
-
-		time.toggle_time("read")
-
+	def local_stretching(self, smoothed, ksize=21, step_size=5, print_int=False):
 		# Filter map
 		localled = smoothed.copy()
-		time.toggle_time("smoothing")
 
-		ksize = 21
-		for (x, y, window) in utils.sliding_window(smoothed, stepSize=5, windowSize=(ksize, ksize)):
+		for (x, y, window) in utils.sliding_window(smoothed, stepSize=step_size, windowSize=(ksize, ksize)):
 			local_hist = cv2.calcHist([window], [0], None, [256], [0, 255])
 			bins = np.count_nonzero(local_hist)
 			if bins > 5:
@@ -139,21 +130,14 @@ class Extractor:
 				localled[y:y + ksize, x:x + ksize] = window1
 
 		if print_int:
-			utils.show(Original=img, Smoothed=smoothed, Local=localled)
+			utils.show(Smoothed=smoothed, Local=localled)
 		return localled
 
-	def local_equalization(self, smoothed, printInf=False):
-		time = timer.TimeChecker()
-		# Open fits map
-		img = utils.get_data(self.fits_path)
-		print("loaded map: {0}".format(self.fits_path))
-
-		time.toggle_time("read")
-
+	def local_equalization(self, smoothed, ksize, clip_limit=2.0, printInf=False):
 		# Filter map
-		clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(20, 20))
+		clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=(ksize, ksize))
 		localled = clahe.apply(smoothed)
 
 		if printInf:
-			utils.show(Original=img, Smoothed=smoothed, Local=localled)
+			utils.show(Smoothed=smoothed, Local=localled)
 		return localled
