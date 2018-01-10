@@ -68,6 +68,7 @@ while True:
 
 	if key == keys['enter']:
 		print_mode()
+
 	# MODE
 	elif key == keys['t']:
 		selected_mode = mode['threshold']
@@ -102,24 +103,22 @@ while True:
 		ext.prints = True
 		run = True
 
-	# PARAM
-	elif key == keys['up_arrow']:  # right
-		if index < len(fits_names) - 1:
+	# FITS maps
+	elif key in [keys['up_arrow'], keys['down_arrow']]:
+
+		if key == keys['up_arrow']:
 			index += 1
-			ext = Extractor.Extractor(fits_names[index])
-			ext.load_config("../data/cta-config.xml")
-			run = True
-		else:
-			run = False
-	elif key == keys['down_arrow']:  # left
-		if index > 0:
+		elif key == keys['down_arrow']:
 			index -= 1
+
+		if index < len(fits_names) - 1 or index > 0:
 			ext = Extractor.Extractor(fits_names[index])
 			ext.load_config("../data/cta-config.xml")
 			run = True
 		else:
 			run = False
 
+	# PARAM
 	elif key in [keys['1'], keys['2'], keys['3'], keys['4'], keys['5']]:
 		if selected_mode != mode['none']:
 			selected_param = int([k for k, v in keys.items() if v == key][0])
