@@ -32,6 +32,7 @@ keys = {
 	'3': 51,
 	'4': 52,
 	'5': 53,
+	'anti-parallels': 127
 }
 
 mode = {
@@ -163,7 +164,7 @@ while True:
 		else:
 			print("\nNo mode selected!")
 	elif key in [keys['right_arrow'], keys['left_arrow']]:
-		if selected_param:
+		if selected_param and selected_mode!=['none']:
 			if key == keys['right_arrow']:
 				sign = 1
 			elif key == keys['left_arrow']:
@@ -172,32 +173,60 @@ while True:
 			if selected_mode == mode['threshold']:
 				if selected_param == 1:
 					t['adaptive kernel size'] += 2*sign
+					if t['adaptive kernel size'] < 3:
+						t['adaptive kernel size'] = 3
+
 				elif selected_param == 2:
 					t['adaptive constant'] += sign
+				else:
+					print("\nNo parameter selected!")
 
 			elif selected_mode == mode['filter']:
 				if selected_param == 1:
 					f['number of median iterations'] += sign
+					if f['number of median iterations'] < 0:
+						f['number of median iterations'] = 0
 				elif selected_param == 2:
 					f['median kernel size'] += 2*sign
+					if f['median kernel size'] < 3:
+						f['median kernel size'] = 3
 				elif selected_param == 3:
 					f['number of gaussian iterations'] += sign
+					if f['number of gaussian iterations'] < 0:
+						f['number of gaussian iterations'] = 0
 				elif selected_param == 4:
 					f['gaussian kernel size'] += 2*sign
+					if f['gaussian kernel size'] < 3:
+						f['gaussian kernel size'] = 3
+				else:
+					print("\nNo parameter selected!")
 
 			elif selected_mode == mode['equalization']:
 				if selected_param == 1:
 					e['equalization kernel size'] += 2*sign
+					if e['equalization kernel size'] < 3:
+						e['equalization kernel size'] = 3
 				elif selected_param == 2:
 					e['clip limit'] += sign
+				else:
+					print("\nNo parameter selected!")
 
 			elif selected_mode == mode['stretch']:
 				if selected_param == 1:
 					s['stretch kernel size'] += 2*sign
+					if s['stretch kernel size'] < 3:
+						s['stretch kernel size'] = 3
 				elif selected_param == 2:
 					s['stretch step size'] += sign
+					if s['stretch step size'] < 1:
+						s['stretch step size'] = 1
 				elif selected_param == 3:
 					s['stretch min bins'] += sign
+					if s['stretch min bins'] < 1:
+						s['stretch min bins'] = 1
+				else:
+					print("\nNo parameter selected!")
+
 			else:
 				print("\nNo mode selected!")
 				run = False

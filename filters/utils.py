@@ -25,20 +25,7 @@ def get_data(src):
 
 
 def show(**kwargs):
-	x = 0
-	y = 0
-	for key in kwargs:
-		label = key
-		img = kwargs[key]
-		cv2.namedWindow(label, cv2.WINDOW_NORMAL)
-		cv2.imshow(label, img)
-		cv2.resizeWindow(label, dx, dy - label_bar_height)
-		cv2.moveWindow(label, x, y)
-
-		screen_end = int(x / (screen_width - dx)) > 0
-
-		x = x + dx if not screen_end else 0
-		y += dy if screen_end else 0
+	show2(**kwargs)
 
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()

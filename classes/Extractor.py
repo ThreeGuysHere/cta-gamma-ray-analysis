@@ -125,7 +125,7 @@ class Extractor:
 		if self.debug_prints:
 			time.total()
 
-		utils.show2(Blobbed=im_with_keypoints, Original=img)
+		utils.show2(Blobbed=im_with_keypoints)
 
 		return utils.create_xml(buffer.getvalue())
 
