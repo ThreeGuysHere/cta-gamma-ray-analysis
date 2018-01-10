@@ -48,7 +48,7 @@ class Extractor:
 		self.blob_filter_circularity = None
 		self.blob_min_circularity = None
 
-		self.print_intermediate = False
+		self.print_intermediate = None
 
 		print('Extractor initialised')
 		return
@@ -163,7 +163,7 @@ class Extractor:
 			self.gaussian_ksize = utils.convert_node_value(root.filtering.gaussian.kernelsize)
 			self.gaussian_sigma = utils.convert_node_value(root.filtering.gaussian.sigma)
 
-		self.local_mode = str(root.localtransformation.type.string)
+		self.local_mode = utils.convert_node_value(root.localtransformation.type, "string")
 		if self.local_mode == "Stretching":
 			self.local_stretch_ksize = utils.convert_node_value(root.localtransformation.kernelsize)
 			self.local_stretch_step_size = utils.convert_node_value(root.localtransformation.stepsize)
@@ -172,7 +172,7 @@ class Extractor:
 			self.local_eq_ksize = utils.convert_node_value(root.localtransformation.kernelsize)
 			self.local_eq_clip_limit = utils.convert_node_value(root.localtransformation.stepsize)
 
-		self.threshold_mode = str(root.segmentation.type.string)
+		self.threshold_mode = utils.convert_node_value(root.segmentation.type, "string")
 		if self.threshold_mode == "Adaptive":
 			self.adaptive_filtering = self.adaptive_filter(utils.convert_node_value(root.segmentation.filter, "string"))
 			self.adaptive_block_size = utils.convert_node_value(root.segmentation.blocksize)

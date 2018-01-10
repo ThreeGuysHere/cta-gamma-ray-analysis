@@ -115,8 +115,12 @@ def perror(error):
 
 def convert_node_value(value, type='int'):
 	return {
-		'int': lambda x: int(x.string),
-		'float': lambda x: float(x.string),
-		'string': lambda x: x.string,
-		'bool': lambda x: bool(x.string)
-	}[type](value)
+		'int': lambda x: int(x),
+		'float': lambda x: float(x),
+		'string': lambda x: x,
+		'bool': str2bool,
+	}[type](value.string)
+
+
+def str2bool(v):
+	return v.lower() in ("yes", "true", "t", "1")
