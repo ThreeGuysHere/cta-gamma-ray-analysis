@@ -89,7 +89,7 @@ def print_mode():
 		"f:\t\tgaussian & median filter\n"
 		"e:\t\tlocal equalization\n"
 		"s:\t\tlocal stretch\n"
-		"i:\t\tprint results\n"
+		"r:\t\tprint results\n"
 		"v:\t\tprint current values\n"
 		"up-down to change map\n"
 		"esc:\tquit")
@@ -117,7 +117,7 @@ while True:
 		selected_mode = mode['none']
 
 	key = cv2.waitKey(0)
-	# key_pressed = [k for k, v in keys.items() if v == key][0]
+	key_pressed = [k for k, v in keys.items() if v == key][0]
 	run = True
 
 	if key == keys['esc']:
@@ -207,7 +207,7 @@ while True:
 
 	else:
 		run = False
-		print(key)
+		# print(key)
 
 cv2.destroyAllWindows()
 
