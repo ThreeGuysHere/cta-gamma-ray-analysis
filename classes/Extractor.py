@@ -200,8 +200,8 @@ class Extractor:
 			self.blob_filter_circularity = utils.convert_node_value(root.blobdetector.filtercircularity, "bool")
 			self.blob_min_circularity = utils.convert_node_value(root.blobdetector.mincircularity, "float")
 
-		if root.debugprints:
-			self.print_intermediate = utils.convert_node_value(root.debugprints, "bool")
+		if root.debugimages:
+			self.debug_images = utils.convert_node_value(root.debugimages, "bool")
 
 		self.config_loaded = True
 		return
