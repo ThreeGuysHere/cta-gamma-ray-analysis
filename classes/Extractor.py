@@ -41,9 +41,11 @@ class Extractor:
 		self.morph_shape = cv2.MORPH_ELLIPSE
 		self.morph_size = 7
 
-		self.print_intermediate = False
+		self.debug_prints = False
+		self.prints = False
 
-		print('Extractor initialised')
+		if self.prints:
+			print('Extractor initialised')
 		return
 
 	def perform_extraction(self):
@@ -55,21 +57,22 @@ class Extractor:
 		time = timer.TimeChecker()
 		# Open fits map
 		img = utils.get_data(self.fits_path)
-		print("loaded map: {0}".format(self.fits_path))
-		time.toggle_time("read")
+		if self.prints:
+			print("loaded map: {0}".format(self.fits_path))
+		time.toggle_time("read", self.debug_prints)
 
 		# Filter map
 		smoothed = k.median_gaussian(img, self.median_iter, self.median_ksize, self.gaussian_iter, self.gaussian_ksize)
-		time.toggle_time("smoothing")
+		time.toggle_time("smoothing", self.debug_prints)
 
 		# Contrast Enhancing
 		localled = self.local_transformation(self.local_mode)(smoothed)
-		time.toggle_time("contrast enhancing")
+		time.toggle_time("contrast enhancing", self.debug_prints)
 
 		# Binary segmentation and binary morphology
 		segmented = self.segmentation(self.threshold_mode)(localled)
 		segmented = self.morphology(segmented)
-		time.toggle_time("segmentation")
+		time.toggle_time("segmentation", self.debug_prints)
 
 		# Blob detection
 		# # Detection parameters
@@ -104,31 +107,33 @@ class Extractor:
 		index = 0
 		buffer = StringIO()
 
-		for keyPoint in keypoints:
-			print('----------------------------------')
-			current_blob = blob.BlobResult(self.fits_path, index)
-			index = index + 1
+		if self.prints:
+			for keyPoint in keypoints:
+				print('----------------------------------')
+				current_blob = blob.BlobResult(self.fits_path, index)
+				index = index + 1
 
-			current_blob.set_bary(keyPoint.pt)
-			current_blob.set_diameter(keyPoint.size)
-			current_blob.set_mask(img.shape)
-			current_blob.print_values()
+				current_blob.set_bary(keyPoint.pt)
+				current_blob.set_diameter(keyPoint.size)
+				current_blob.set_mask(img.shape)
+				current_blob.print_values()
 
-			buffer.write(current_blob.make_xml_blob())
-		print('=================================')
+				buffer.write(current_blob.make_xml_blob())
+			print('==================================')
 
-		time.toggle_time("blob extraction")
-		time.total()
+		time.toggle_time("blob extraction", self.debug_prints)
+		if self.debug_prints:
+			time.total()
 
-		utils.show(Blobbed=im_with_keypoints, Original=img)
+		utils.show2(Blobbed=im_with_keypoints, Original=img)
 
 		return utils.create_xml(buffer.getvalue())
 
 	def local_stretching(self, img):
-		return k.local_stretching(img, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins, self.print_intermediate)
+		return k.local_stretching(img, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins, self.debug_prints)
 
 	def local_equalization(self, img):
-		return k.local_equalization(img, self.local_eq_ksize, self.local_eq_clip_limit, self.print_intermediate)
+		return k.local_equalization(img, self.local_eq_ksize, self.local_eq_clip_limit, self.debug_prints)
 
 	def adaptive_threshold(self, img):
 		return cv2.adaptiveThreshold(img, 255, self.adaptive_filtering, cv2.THRESH_BINARY, self.adaptive_block_size, self.adaptive_const)
@@ -175,33 +180,34 @@ class Extractor:
 		return {
 			"Stretching": self.local_stretching,
 			"Equalization": self.local_equalization,
-		}.get(x, utils.perror("local transformation"))
+		}.get(x)
 
 	def segmentation(self, x):
 		return {
 			"Adaptive": self.adaptive_threshold,
-		}.get(x, utils.perror("segmentation"))
+		}.get(x)
 
 	def filter(self, x):
 		return {
 			"median": self.median_filtering,
 			"gaussian": self.gaussian_filtering,
-		}.get(x, utils.perror("filter"))
+		}.get(x)
 
 	def adaptive_filter(self, x):
 		return {
 			"Mean": cv2.ADAPTIVE_THRESH_MEAN_C,
 			"Gaussian": cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-		}.get(x, utils.perror("adaptive filter"))
+		}.get(x)
 
 	def set_morph_shape(self, x):
 		return {
 			"Ellipse": cv2.MORPH_ELLIPSE,
 			"Cross": cv2.MORPH_CROSS,
-		}.get(x, utils.perror("morphology shape"))
+		}.get(x)
 
 	def morph_operator(self, x):
 		return {
 			"Opening": cv2.MORPH_OPEN,
 			"Closing": cv2.MORPH_CLOSE,
-		}.get(x, utils.perror("local transformation"))
+		}.get(x)
+
