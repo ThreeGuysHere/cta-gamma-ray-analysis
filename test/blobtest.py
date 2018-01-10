@@ -57,6 +57,7 @@ t = params['threshold']
 f = params['filter']
 e = params['equalization']
 s = params['stretch']
+params['local mode'] = ext.local_mode
 t['adaptive kernel size'] = ext.adaptive_block_size
 t['adaptive constant'] = ext.adaptive_const
 f['number of median iterations'] = ext.median_iter
@@ -91,6 +92,7 @@ def init_ext():
 	ext.local_stretch_ksize = s['stretch kernel size']
 	ext.local_stretch_step_size = s['stretch step size']
 	ext.local_stretch_min_bins = s['stretch min bins']
+	ext.local_mode = params['local mode']
 
 
 def print_mode():
@@ -98,7 +100,7 @@ def print_mode():
 		"t:\t\tadaptive threshold\n"
 		"f:\t\tgaussian & median filter\n"
 		"e:\t\tlocal equalization\n"
-		"s:\t\tlocal stretch\n"
+		"s:\t\tlocal stretch\n\n"
 		"r:\t\tprint results\n"
 		"v:\t\tprint current values\n"
 		"up-down to change map\n"
@@ -110,8 +112,11 @@ def print_values(params):
 	print('\n==============VALUES==============')
 	for x in params:
 		print('\n--', x.upper(), '--\n')
-		for y in params[x]:
-			print(params[x][y], '\t', y)
+		if x != 'local mode':
+			for y in params[x]:
+					print(params[x][y], '\t', y)
+		else:
+			print(params[x])
 	print('==================================\n')
 
 
@@ -135,7 +140,7 @@ while True:
 		break
 
 	if key == keys['enter']:
-		print_values(params)
+		print_mode()
 
 	if key == keys['v']:
 		print_values(params)
@@ -143,12 +148,16 @@ while True:
 	# MODE
 	elif key in [keys['threshold'], keys['filter'], keys['equalization'], keys['stretch']]:
 		mode_key = [k for k, v in keys.items() if v == key][0]
-		print("\nSelect parameter:\n")
+		print("\nSelected mode:", mode_key.upper(), " - Select the parameter to change:\n")
 		run = True
-		key_pressed = [k for k, v in keys.items() if v == key][0]
-		selected_mode = mode[key_pressed]
+		selected_mode = mode[mode_key]
 
-		ord_dict = collections.OrderedDict(params[key_pressed])
+		if key == keys['equalization']:
+			params['local mode'] = "Equalization"
+		elif key == keys['stretch']:
+			params['local mode'] = "Stretching"
+
+		ord_dict = collections.OrderedDict(params[mode_key])
 		idx = 0
 		for x in ord_dict:
 			idx += 1
@@ -171,12 +180,12 @@ while True:
 	# PARAM
 	elif key in [keys['1'], keys['2'], keys['3'], keys['4'], keys['5']]:
 		if selected_mode != mode['none']:
-
 			selected_param = int([k for k, v in keys.items() if v == key][0])
+			print("\nSelected param:", selected_param, " - Use <- or -> to change.")
 		else:
 			print("\nNo mode selected!")
 	elif key in [keys['right_arrow'], keys['left_arrow']]:
-		if selected_param and selected_mode!=['none']:
+		if selected_param and selected_mode != ['none']:
 			if key == keys['right_arrow']:
 				sign = 1
 			elif key == keys['left_arrow']:
