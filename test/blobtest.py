@@ -1,36 +1,243 @@
 from classes import Extractor
+import glob
 import cv2
+import collections
 
-fits_names = ['../img/1s.fits', '../img/1s_bis.fits', '../img/1s_noise.fits',
-			  '../img/2s_strongweak.fits', '../img/3s_displaced.fits', '../img/3s_joined.fits',
-			  '../img/3s_strong_noise.fits', '../img/3s_strongweak.fits', '../img/4s_strongweak.fits']
 
-index = 0
+fits_names = glob.glob("../img/*.fits")
+index = len(fits_names) - 1
+selected_mode = -1
+selected_param = -1
 run = True
 
+ext = Extractor.Extractor(fits_names[index])
+ext.load_config("../data/cta-config.xml")
+
+
+keys = {
+	'right_arrow': 83,
+	'left_arrow': 81,
+	'up_arrow': 82,
+	'down_arrow': 84,
+	'esc': 27,
+	'enter': 13,
+	'threshold': 116,  		# t
+	'filter': 102,  		# f
+	'stretch': 115,  		# s
+	'equalization': 101,  	# e
+	'r': 114,
+	'v': 118,
+	'1': 49,
+	'2': 50,
+	'3': 51,
+	'4': 52,
+	'5': 53,
+	'anti-parallels': 127
+}
+
+mode = {
+	'init': -1,
+	'none': 0,
+	'threshold': 1,
+	'filter': 2,
+	'equalization': 3,
+	'stretch': 4,
+}
+
+
+#current parameters
+params = collections.OrderedDict({
+	'threshold': collections.OrderedDict(),
+	'filter': collections.OrderedDict(),
+	'equalization': collections.OrderedDict(),
+	'stretch': collections.OrderedDict()
+})
+
+t = params['threshold']
+f = params['filter']
+e = params['equalization']
+s = params['stretch']
+t['adaptive kernel size'] = ext.adaptive_block_size
+t['adaptive constant'] = ext.adaptive_const
+f['number of median iterations'] = ext.median_iter
+f['median kernel size'] = ext.median_ksize
+f['number of gaussian iterations'] = ext.gaussian_iter
+f['gaussian kernel size'] = ext.gaussian_ksize
+e['equalization kernel size'] = ext.local_eq_ksize
+e['clip limit'] = ext.local_eq_clip_limit
+s['stretch kernel size'] = ext.local_stretch_ksize
+s['stretch step size'] = ext.local_stretch_step_size
+s['stretch min bins'] = ext.local_stretch_min_bins
+
+
+def init_ext():
+	ext.adaptive_block_size = t['adaptive kernel size']
+	ext.adaptive_const = t['adaptive constant']
+	ext.median_iter = f['number of median iterations']
+	ext.median_ksize = f['median kernel size']
+	ext.gaussian_iter = f['number of gaussian iterations']
+	ext.gaussian_ksize = f['gaussian kernel size']
+	ext.local_eq_ksize = e['equalization kernel size']
+	ext.local_eq_clip_limit = e['clip limit']
+	ext.local_stretch_ksize = s['stretch kernel size']
+	ext.local_stretch_step_size = s['stretch step size']
+	ext.local_stretch_min_bins = s['stretch min bins']
+
+
+def print_mode():
+	print("\nSelect mode: \n"
+		"t:\t\tadaptive threshold\n"
+		"f:\t\tgaussian & median filter\n"
+		"e:\t\tlocal equalization\n"
+		"s:\t\tlocal stretch\n"
+		"r:\t\tprint results\n"
+		"v:\t\tprint current values\n"
+		"up-down to change map\n"
+		"esc:\tquit")
+	return
+
+
+def print_values(params):
+	print('\n==============VALUES==============')
+	for x in params:
+		print('\n--', x.upper(), '--\n')
+		for y in params[x]:
+			print(params[x][y], '\t', y)
+	print('==================================\n')
+
+
 while True:
+
 	if run:
-		ext = Extractor.Extractor(fits_names[index])
-		#ext.load_config("../data/cta-config.xml")
-		xml = ext.perform_extraction()
-		# print("output_xml_path = {0}".format(xml))
+		init_ext()
+		ext.perform_extraction()
+		ext.prints = False
+
+	if selected_mode == mode['init']:
+		print_mode()
+		selected_mode = mode['none']
 
 	key = cv2.waitKey(0)
-	if key == 27:  # esc
+	key_pressed = [k for k, v in keys.items() if v == key][0]
+	run = True
+
+	if key == keys['esc']:
 		break
-	elif key == 83 and index < len(fits_names)-1:  # right
+
+	if key == keys['enter']:
+		print_values(params)
+
+	if key == keys['v']:
+		print_values(params)
+
+	# MODE
+	elif key in [keys['threshold'], keys['filter'], keys['equalization'], keys['stretch']]:
+		mode_key = [k for k, v in keys.items() if v == key][0]
+		print("\nSelect parameter:\n")
+		run = True
+		selected_mode = mode[key_pressed]
+
+		ord_dict = collections.OrderedDict(params[key_pressed])
+		idx = 0
+		for x in ord_dict:
+			idx += 1
+			print(idx, ': ({0})\t'.format(ord_dict[x]), x)
+
+	elif key == keys['r']:
+		print("\n==============RESULTS=============")
+		ext.prints = True
+
+	# FITS maps
+	elif key == keys['up_arrow'] and index < len(fits_names) - 1:
 		index += 1
-		run = True
-	elif key == 81 and index > 0:  # left
+		ext = Extractor.Extractor(fits_names[index])
+		ext.load_config("../data/cta-config.xml")
+	elif key == keys['down_arrow'] and index > 0:
 		index -= 1
-		run = True
+		ext = Extractor.Extractor(fits_names[index])
+		ext.load_config("../data/cta-config.xml")
+
+	# PARAM
+	elif key in [keys['1'], keys['2'], keys['3'], keys['4'], keys['5']]:
+		if selected_mode != mode['none']:
+			selected_param = int(key_pressed)
+		else:
+			print("\nNo mode selected!")
+	elif key in [keys['right_arrow'], keys['left_arrow']]:
+		if selected_param and selected_mode!=['none']:
+			if key == keys['right_arrow']:
+				sign = 1
+			elif key == keys['left_arrow']:
+				sign = -1
+
+			if selected_mode == mode['threshold']:
+				if selected_param == 1:
+					t['adaptive kernel size'] += 2*sign
+					if t['adaptive kernel size'] < 3:
+						t['adaptive kernel size'] = 3
+
+				elif selected_param == 2:
+					t['adaptive constant'] += sign
+				else:
+					print("\nNo parameter selected!")
+
+			elif selected_mode == mode['filter']:
+				if selected_param == 1:
+					f['number of median iterations'] += sign
+					if f['number of median iterations'] < 0:
+						f['number of median iterations'] = 0
+				elif selected_param == 2:
+					f['median kernel size'] += 2*sign
+					if f['median kernel size'] < 3:
+						f['median kernel size'] = 3
+				elif selected_param == 3:
+					f['number of gaussian iterations'] += sign
+					if f['number of gaussian iterations'] < 0:
+						f['number of gaussian iterations'] = 0
+				elif selected_param == 4:
+					f['gaussian kernel size'] += 2*sign
+					if f['gaussian kernel size'] < 3:
+						f['gaussian kernel size'] = 3
+				else:
+					print("\nNo parameter selected!")
+
+			elif selected_mode == mode['equalization']:
+				if selected_param == 1:
+					e['equalization kernel size'] += 2*sign
+					if e['equalization kernel size'] < 3:
+						e['equalization kernel size'] = 3
+				elif selected_param == 2:
+					e['clip limit'] += sign
+				else:
+					print("\nNo parameter selected!")
+
+			elif selected_mode == mode['stretch']:
+				if selected_param == 1:
+					s['stretch kernel size'] += 2*sign
+					if s['stretch kernel size'] < 3:
+						s['stretch kernel size'] = 3
+				elif selected_param == 2:
+					s['stretch step size'] += sign
+					if s['stretch step size'] < 1:
+						s['stretch step size'] = 1
+				elif selected_param == 3:
+					s['stretch min bins'] += sign
+					if s['stretch min bins'] < 1:
+						s['stretch min bins'] = 1
+				else:
+					print("\nNo parameter selected!")
+
+			else:
+				print("\nNo mode selected!")
+				run = False
+		else:
+			print("\nNo parameter selected!")
+			run = False
+
 	else:
 		run = False
-
-
-# # cercare il massimo + neighbour al n%
-# masked_original = np.multiply(smoothed, el.mask)
-# center_intensity = np.argwhere(masked_original >= int(np.amax(masked_original)*0.95))
-# print(center_intensity)
+		# print(key)
 
 cv2.destroyAllWindows()
+
+

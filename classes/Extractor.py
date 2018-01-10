@@ -50,9 +50,10 @@ class Extractor:
 		self.blob_min_circularity = None
 
 		self.print_intermediate = None
+		self.prints = False
 
-		print('=================================')
-		print('Extractor initialised')
+		if self.prints:
+			print('Extractor initialised')
 		return
 
 	def perform_extraction(self):
@@ -67,21 +68,22 @@ class Extractor:
 		time = timer.TimeChecker()
 		# Open fits map
 		img = utils.get_data(self.fits_path)
-		print("loaded map: {0}".format(self.fits_path))
-		time.toggle_time("read")
+		if self.prints:
+			print("loaded map: {0}".format(self.fits_path))
+		time.toggle_time("read", self.debug_prints)
 
 		# Filter map
 		smoothed = k.median_gaussian(img, self.median_iter, self.median_ksize, self.gaussian_iter, self.gaussian_ksize, self.gaussian_sigma)
-		time.toggle_time("smoothing")
+		time.toggle_time("smoothing", self.debug_prints)
 
 		# Contrast Enhancing
 		localled = self.local_transformation(self.local_mode)(smoothed)
-		time.toggle_time("contrast enhancing")
+		time.toggle_time("contrast enhancing", self.debug_prints)
 
 		# Binary segmentation and binary morphology
 		segmented = self.segmentation(self.threshold_mode)(localled)
 		segmented = self.morphology(segmented)
-		time.toggle_time("segmentation")
+		time.toggle_time("segmentation", self.debug_prints)
 
 		# Blob detection
 		keypoints = self.blob_detection(segmented)
@@ -93,26 +95,29 @@ class Extractor:
 		index = 0
 		buffer = StringIO()
 
-		for keyPoint in keypoints:
+		if self.prints:
+			for keyPoint in keypoints:
+				print('----------------------------------')
+				current_blob = blob.BlobResult(self.fits_path, index, self.relative_path)
+				index = index + 1
+
+				current_blob.set_bary(keyPoint.pt)
+				current_blob.set_diameter(keyPoint.size)
+				current_blob.set_mask(img.shape)
+				current_blob.print_values()
+
+				buffer.write(current_blob.make_xml_blob()+'\n')
 			print('----------------------------------')
-			current_blob = blob.BlobResult(self.fits_path, index, self.relative_path)
-			index = index + 1
 
-			current_blob.set_bary(keyPoint.pt)
-			current_blob.set_diameter(keyPoint.size)
-			current_blob.set_mask(img.shape)
-			current_blob.print_values()
-
-			buffer.write(current_blob.make_xml_blob()+'\n')
-		print('----------------------------------')
-
-		time.toggle_time("blob extraction")
-		time.total()
+		time.toggle_time("blob extraction", self.debug_prints)
+		if self.debug_prints:
+			time.total()
 
 		utils.show2(Blobbed=im_with_keypoints, Original=img)
+		if self.prints:
+			print('Done!')
+			print('=================================')
 
-		print('Done!')
-		print('=================================')
 		return utils.create_xml(buffer.getvalue(),self.relative_path)
 
 	def local_stretching(self, img):
