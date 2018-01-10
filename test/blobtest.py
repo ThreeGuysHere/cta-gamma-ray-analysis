@@ -10,7 +10,7 @@ selected_mode = -1
 selected_param = -1
 run = True
 
-ext = Extractor.Extractor(fits_names[index])
+ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
 ext.load_config("../data/cta-config.xml")
 
 

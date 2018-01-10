@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 
 class Extractor:
 
-	def __init__(self, fits_path=None, relative_path="../"):
+	def __init__(self, fits_path=None, relative_path="../", debug_prints=True, prints=True):
 		"""
 		Constructor
 		"""
@@ -50,8 +50,8 @@ class Extractor:
 		self.blob_min_circularity = None
 
 		self.debug_images = None
-		self.debug_prints = False
-		self.prints = False
+		self.debug_prints = debug_prints
+		self.prints = prints
 
 		return
 
