@@ -11,7 +11,7 @@ selected_param = -1
 run = True
 
 ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-ext.load_config("../data/cta-config.xml")
+# ext.load_config("../data/cta-config.xml")
 
 
 keys = {
@@ -171,11 +171,11 @@ while True:
 	elif key == keys['up_arrow'] and index < len(fits_names) - 1:
 		index += 1
 		ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-		ext.load_config("../data/cta-config.xml")
+		#ext.load_config("../data/cta-config.xml")
 	elif key == keys['down_arrow'] and index > 0:
 		index -= 1
 		ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-		ext.load_config("../data/cta-config.xml")
+		#ext.load_config("../data/cta-config.xml")
 
 	# PARAM
 	elif key in [keys['1'], keys['2'], keys['3'], keys['4'], keys['5']]:
