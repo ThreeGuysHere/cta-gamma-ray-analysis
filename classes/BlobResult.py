@@ -4,12 +4,13 @@ import numpy as np
 
 class BlobResult:
 
-	def __init__(self, fits_path, index):
+	def __init__(self, fits_path, index, relative_path):
 		"""
 		Constructor
 		"""
 		self.path_map = fits_path
 		self.index = index
+		self.relative_path = relative_path
 		self.bary = None
 		self.diam = None
 		self.radius = None
@@ -40,19 +41,19 @@ class BlobResult:
 		return
 
 	def make_xml_blob(self):
-		with open("../data/blob_model.xml", 'r') as model_xml:
+		with open(self.relative_path+"data/blob_model.xml", 'r') as model_xml:
 			# read model
 			parametrized = model_xml.read()
 
 			# replace params
 			parametrized = parametrized.replace("SPOT_NAME", "SPOT_{0}".format(self.index))
-			parametrized = parametrized.replace("FOUND_RA", str(self.radec[0]))
-			parametrized = parametrized.replace("FOUND_DEC", str(self.radec[1]))
+			parametrized = parametrized.replace("FOUND_RA", str(np.round(self.radec[0], 4)))
+			parametrized = parametrized.replace("FOUND_DEC", str(np.round(self.radec[1], 4)))
 
 		return parametrized
 
 	def print_values(self):
-		print("Barycenter: ({0}, {1})".format(np.round(self.bary[0],2),np.round(self.bary[1],2)))
-		print("Radius: {0}".format(np.round(self.radius, 3)))
-		print("RA,Dec: ({0}, {1})".format(np.round(self.radec[0], 3), np.round(self.radec[1], 3)))
+		print("Barycenter: ({0}, {1})".format(int(round(self.bary[0])), int(round(self.bary[1]))))
+		print("Radius: {0}".format(np.round(self.radius, 4)))
+		print("RA,Dec: ({0}, {1})".format(np.round(self.radec[0], 4), np.round(self.radec[1], 4)))
 		return

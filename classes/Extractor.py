@@ -8,11 +8,12 @@ from bs4 import BeautifulSoup
 
 class Extractor:
 
-	def __init__(self, fits_path=None):
+	def __init__(self, fits_path=None, relative_path="../"):
 		"""
 		Constructor
 		"""
 		self.fits_path = fits_path
+		self.relative_path = relative_path
 		self.default_config = "../data/default.conf"
 		self.config_loaded = False
 
@@ -50,6 +51,7 @@ class Extractor:
 
 		self.print_intermediate = None
 
+		print('=================================')
 		print('Extractor initialised')
 		return
 
@@ -93,7 +95,7 @@ class Extractor:
 
 		for keyPoint in keypoints:
 			print('----------------------------------')
-			current_blob = blob.BlobResult(self.fits_path, index)
+			current_blob = blob.BlobResult(self.fits_path, index, self.relative_path)
 			index = index + 1
 
 			current_blob.set_bary(keyPoint.pt)
@@ -101,15 +103,17 @@ class Extractor:
 			current_blob.set_mask(img.shape)
 			current_blob.print_values()
 
-			buffer.write(current_blob.make_xml_blob())
-		print('=================================')
+			buffer.write(current_blob.make_xml_blob()+'\n')
+		print('----------------------------------')
 
 		time.toggle_time("blob extraction")
 		time.total()
 
 		utils.show2(Blobbed=im_with_keypoints, Original=img)
 
-		return utils.create_xml(buffer.getvalue())
+		print('Done!')
+		print('=================================')
+		return utils.create_xml(buffer.getvalue(),self.relative_path)
 
 	def local_stretching(self, img):
 		return k.local_stretching(img, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins, self.print_intermediate)
