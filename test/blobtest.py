@@ -69,6 +69,10 @@ s['stretch kernel size'] = ext.local_stretch_ksize
 s['stretch step size'] = ext.local_stretch_step_size
 s['stretch min bins'] = ext.local_stretch_min_bins
 
+if not e['equalization kernel size']:
+	e['equalization kernel size'] = 15
+	e['clip limit'] = 2.0
+
 
 def init_ext():
 	ext.adaptive_block_size = t['adaptive kernel size']
@@ -112,6 +116,8 @@ while True:
 		init_ext()
 		ext.perform_extraction()
 		ext.prints = False
+		ext.debug_prints = False
+		ext.debug_images = False
 
 	if selected_mode == mode['init']:
 		print_mode()
