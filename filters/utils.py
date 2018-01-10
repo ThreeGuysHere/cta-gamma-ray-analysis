@@ -1,7 +1,7 @@
 from astropy.io import fits
 import numpy as np
 import cv2
-from bs4 import BeautifulSoup
+from filters import kernelize as k
 
 #  screen info
 screen_width = 1920
@@ -20,6 +20,7 @@ def normalize(src):
 
 def get_data(src):
 	data = fits.getdata(src)
+	data = k.local_stretching2(data, 21, 10, 15, False)
 	data = normalize(data)
 	return data.astype(np.uint8)
 

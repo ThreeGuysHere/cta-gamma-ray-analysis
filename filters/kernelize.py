@@ -95,3 +95,22 @@ def local_equalization(smoothed, ksize, clip_limit, debug_prints):
     if debug_prints:
         utils.show(Smoothed=smoothed, Local=localled)
     return localled
+
+def local_stretching2(smoothed, ksize, step_size, min_bins, debug_prints):
+    # Filter map
+    smoothed = smoothed.astype(np.uint64)
+    localled = smoothed.copy()
+    max = int(np.max(smoothed))
+    for (x, y, window) in utils.sliding_window(smoothed, stepSize=step_size, windowSize=(ksize, ksize)):
+        hist, boh = np.histogram(window, bins=range(max+1))
+
+        bins = np.count_nonzero(hist)
+        if bins > min_bins:
+            window1 = window.copy()
+            window1 = utils.normalize(window1)
+            #cv2.normalize(window1, window1, 0, 255, cv2.NORM_MINMAX)
+            localled[y:y + ksize, x:x + ksize] = window1
+
+    if debug_prints:
+        utils.show(Smoothed=smoothed, Local=localled)
+    return localled
