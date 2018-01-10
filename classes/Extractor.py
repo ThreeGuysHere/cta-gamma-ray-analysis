@@ -133,7 +133,7 @@ class Extractor:
 		time.toggle_time("blob extraction")
 		time.total()
 
-		utils.show(Blobbed=im_with_keypoints, Original=img)
+		utils.show2(Blobbed=im_with_keypoints, Original=img)
 
 		print('Done!')
 		print('=================================')

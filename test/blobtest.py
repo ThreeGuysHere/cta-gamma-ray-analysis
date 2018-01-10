@@ -12,7 +12,7 @@ while True:
 	if run:
 		ext = Extractor.Extractor(fits_names[index])
 		xml = ext.perform_extraction()
-		print("output_xml_path = {0}".format(xml))
+		# print("output_xml_path = {0}".format(xml))
 
 	key = cv2.waitKey(0)
 	if key == 27:  # esc
