@@ -118,7 +118,6 @@ while True:
 		selected_mode = mode['none']
 
 	key = cv2.waitKey(0)
-	key_pressed = [k for k, v in keys.items() if v == key][0]
 	run = True
 
 	if key == keys['esc']:
@@ -135,6 +134,7 @@ while True:
 		mode_key = [k for k, v in keys.items() if v == key][0]
 		print("\nSelect parameter:\n")
 		run = True
+		key_pressed = [k for k, v in keys.items() if v == key][0]
 		selected_mode = mode[key_pressed]
 
 		ord_dict = collections.OrderedDict(params[key_pressed])
@@ -160,7 +160,8 @@ while True:
 	# PARAM
 	elif key in [keys['1'], keys['2'], keys['3'], keys['4'], keys['5']]:
 		if selected_mode != mode['none']:
-			selected_param = int(key_pressed)
+
+			selected_param = int([k for k, v in keys.items() if v == key][0])
 		else:
 			print("\nNo mode selected!")
 	elif key in [keys['right_arrow'], keys['left_arrow']]:
