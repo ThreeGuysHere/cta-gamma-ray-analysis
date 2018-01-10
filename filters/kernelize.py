@@ -16,12 +16,10 @@ def gray_gaussian_mask_at(img, coords):
     # print("max = {0}".format(max))
 
     ksize = 2*max+1
-
     kernel = get_gaussian_kernel(ksize)
     # print("kernel_shape = {0}".format(kernel.shape))
 
     mask = kernel[max-coords[0]:max+(img.shape[0] - coords[0]), max - coords[1]:max + (img.shape[1] - coords[1])]
-
     # print("mask_shape = {0}".format(mask.shape))
     return mask
 
@@ -33,7 +31,6 @@ def gaussian_mask(img):
     :return: a gaussian mask gray matrix
     """
     coords = np.argwhere(img == np.amax(img))
-
     mask = np.zeros(img.shape)
 
     for c in coords:
@@ -52,7 +49,7 @@ def get_gaussian_kernel(ksize, sigma=-1):
     return cv2.getGaussianKernel(ksize, sigma) * np.matrix.transpose(cv2.getGaussianKernel(ksize, sigma))
 
 
-def median_gaussian(src, median_iter=1, mksize=7, gaussian_iter=1, gksize=3):
+def median_gaussian(src, median_iter, mksize, gaussian_iter, gksize, gsigma):
     """
     Computes a gaussian and a medial 2D filter nsteps times.
     :param src: source image
@@ -63,17 +60,17 @@ def median_gaussian(src, median_iter=1, mksize=7, gaussian_iter=1, gksize=3):
     :return:
     """
     output = src.copy()
-    gaussian_kernel = get_gaussian_kernel(gksize)
+    gaussian_kernel = get_gaussian_kernel(gksize, gsigma)
 
     for i in range(median_iter):
         output = cv2.medianBlur(output, mksize)
     for j in range(gaussian_iter):
         output = cv2.filter2D(output, -1, gaussian_kernel)
 
-    # cv2.normalize(output, output, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
     return output
 
-def local_stretching(smoothed, ksize=15, step_size=5, min_bins=1, debug_prints=False):
+
+def local_stretching(smoothed, ksize, step_size, min_bins, debug_prints):
     # Filter map
     localled = smoothed.copy()
 
@@ -90,7 +87,7 @@ def local_stretching(smoothed, ksize=15, step_size=5, min_bins=1, debug_prints=F
     return localled
 
 
-def local_equalization(smoothed, ksize=15, clip_limit=2.0, debug_prints=False):
+def local_equalization(smoothed, ksize, clip_limit, debug_prints):
     # Filter map
     clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=(ksize, ksize))
     localled = clahe.apply(smoothed)

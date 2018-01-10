@@ -118,4 +118,5 @@ def convert_node_value(value, type='int'):
 		'int': lambda x: int(x.string),
 		'float': lambda x: float(x.string),
 		'string': lambda x: x.string,
+		'bool': lambda x: bool(x.string)
 	}[type](value)

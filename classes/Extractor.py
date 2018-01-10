@@ -8,38 +8,45 @@ from bs4 import BeautifulSoup
 
 class Extractor:
 
-	def __init__(self, fits_path=None, xml_input_path=None):
+	def __init__(self, fits_path=None):
 		"""
 		Constructor
 		"""
 		self.fits_path = fits_path
-		self.xml_input_path = xml_input_path
+		self.default_config = "../data/default.conf"
+		self.config_loaded = False
 
 		# instanzia il lettore
-		self.median_iter = 1
-		self.median_ksize = 7
+		self.median_iter = None
+		self.median_ksize = None
 
-		self.gaussian_iter = 1
-		self.gaussian_ksize = 3
-		self.gaussian_sigma = -1
+		self.gaussian_iter = None
+		self.gaussian_ksize = None
+		self.gaussian_sigma = None
 
-		self.local_mode = "stretching"
-		self.threshold_mode = "adaptive"
+		self.local_mode = None
+		self.threshold_mode = None
 
-		self.local_stretch_ksize = 15
-		self.local_stretch_step_size = 5
-		self.local_stretch_min_bins = 1
+		self.local_stretch_ksize = None
+		self.local_stretch_step_size = None
+		self.local_stretch_min_bins = None
 
-		self.local_eq_ksize = 15
-		self.local_eq_clip_limit = 2.0
+		self.local_eq_ksize = None
+		self.local_eq_clip_limit = None
 
-		self.adaptive_filtering = cv2.ADAPTIVE_THRESH_MEAN_C
-		self.adaptive_block_size = 13
-		self.adaptive_const = -7
+		self.adaptive_filtering = None
+		self.adaptive_block_size = None
+		self.adaptive_const = None
 
-		self.morph_type = cv2.MORPH_OPEN
-		self.morph_shape = cv2.MORPH_ELLIPSE
-		self.morph_size = 7
+		self.morph_type = None
+		self.morph_shape = None
+		self.morph_size = None
+
+		self.blob_filter_area = None
+		self.blob_min_area = None
+		self.blob_max_area = None
+		self.blob_filter_circularity = None
+		self.blob_min_circularity = None
 
 		self.print_intermediate = False
 
@@ -51,6 +58,9 @@ class Extractor:
 		Identifies the gamma-ray source coordinates (RA,Dec) from the input map and creates a xml file for ctlike
 		:return: (ra,dec) coordinates of the source and the path of the output xml
 		"""
+		#load default parameters
+		if not self.config_loaded:
+			self.load_config(self.default_config)
 
 		time = timer.TimeChecker()
 		# Open fits map
@@ -59,7 +69,7 @@ class Extractor:
 		time.toggle_time("read")
 
 		# Filter map
-		smoothed = k.median_gaussian(img, self.median_iter, self.median_ksize, self.gaussian_iter, self.gaussian_ksize)
+		smoothed = k.median_gaussian(img, self.median_iter, self.median_ksize, self.gaussian_iter, self.gaussian_ksize, self.gaussian_sigma)
 		time.toggle_time("smoothing")
 
 		# Contrast Enhancing
@@ -72,30 +82,7 @@ class Extractor:
 		time.toggle_time("segmentation")
 
 		# Blob detection
-		# # Detection parameters
-		params = cv2.SimpleBlobDetector_Params()
-
-		# # Thresholds
-		params.minThreshold = 0
-		params.maxThreshold = 256
-
-		# # Filter blob by area
-		params.filterByArea = True
-		params.minArea = 15
-
-		# # Filter blob by circularity
-		params.filterByCircularity = True
-		params.minCircularity = 0.2
-
-		# # Remove unnecessary filters
-		params.filterByConvexity = False
-		params.filterByInertia = False
-
-		detector = cv2.SimpleBlobDetector_create(params)
-
-		# # Detect blobs
-		reverse_segmented = 255 - segmented
-		keypoints = detector.detect(reverse_segmented)
+		keypoints = self.blob_detection(segmented)
 
 		# # Overlap keypoints and original image
 		im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
@@ -120,7 +107,7 @@ class Extractor:
 		time.toggle_time("blob extraction")
 		time.total()
 
-		utils.show(Blobbed=im_with_keypoints, Original=img)
+		utils.show2(Blobbed=im_with_keypoints, Original=img)
 
 		return utils.create_xml(buffer.getvalue())
 
@@ -135,6 +122,33 @@ class Extractor:
 
 	def morphology(self, img):
 		return cv2.morphologyEx(img, self.morph_type, cv2.getStructuringElement(self.morph_shape, (self.morph_size, self.morph_size)))
+
+	def blob_detection(self, img):
+		# Detection parameters
+		params = cv2.SimpleBlobDetector_Params()
+
+		# Thresholds
+		params.minThreshold = 0
+		params.maxThreshold = 256
+
+		# Filter blob by area
+		params.filterByArea = self.blob_filter_area
+		params.minArea = self.blob_min_area
+		params.maxArea = self.blob_max_area
+
+		# Filter blob by circularity
+		params.filterByCircularity = self.blob_filter_circularity
+		params.minCircularity = self.blob_min_circularity
+
+		# # Remove unnecessary filters
+		params.filterByConvexity = False
+		params.filterByInertia = False
+
+		detector = cv2.SimpleBlobDetector_create(params)
+
+		# # Detect blobs
+		reverse_segmented = 255 - img
+		return detector.detect(reverse_segmented)
 
 	def load_config(self, filepath):
 		conf_file = open(filepath, "r")
@@ -169,39 +183,46 @@ class Extractor:
 			self.morph_shape = self.set_morph_shape(utils.convert_node_value(root.binarymorphology.shape, "string"))
 			self.morph_size = utils.convert_node_value(root.binarymorphology.size)
 
+		if root.blobdetector:
+			self.blob_filter_area = utils.convert_node_value(root.blobdetector.filterarea, "bool")
+			if root.blobdetector.minarea:
+				self.blob_min_area = utils.convert_node_value(root.blobdetector.minarea)
+			if root.blobdetector.maxarea:
+				self.blob_max_area = utils.convert_node_value(root.blobdetector.maxarea)
+			self.blob_filter_circularity = utils.convert_node_value(root.blobdetector.filtercircularity, "bool")
+			self.blob_min_circularity = utils.convert_node_value(root.blobdetector.mincircularity, "float")
+
+		if root.debugprints:
+			self.print_intermediate = utils.convert_node_value(root.debugprints, "bool")
+
+		self.config_loaded = True
 		return
 
 	def local_transformation(self, x):
 		return {
 			"Stretching": self.local_stretching,
 			"Equalization": self.local_equalization,
-		}.get(x, utils.perror("local transformation"))
+		}.get(x)
 
 	def segmentation(self, x):
 		return {
 			"Adaptive": self.adaptive_threshold,
-		}.get(x, utils.perror("segmentation"))
-
-	def filter(self, x):
-		return {
-			"median": self.median_filtering,
-			"gaussian": self.gaussian_filtering,
-		}.get(x, utils.perror("filter"))
+		}.get(x)
 
 	def adaptive_filter(self, x):
 		return {
 			"Mean": cv2.ADAPTIVE_THRESH_MEAN_C,
 			"Gaussian": cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-		}.get(x, utils.perror("adaptive filter"))
+		}.get(x)
 
 	def set_morph_shape(self, x):
 		return {
 			"Ellipse": cv2.MORPH_ELLIPSE,
 			"Cross": cv2.MORPH_CROSS,
-		}.get(x, utils.perror("morphology shape"))
+		}.get(x)
 
 	def morph_operator(self, x):
 		return {
 			"Opening": cv2.MORPH_OPEN,
 			"Closing": cv2.MORPH_CLOSE,
-		}.get(x, utils.perror("local transformation"))
+		}.get(x)
