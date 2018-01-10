@@ -140,7 +140,7 @@ while True:
 		idx = 0
 		for x in ord_dict:
 			idx += 1
-			print(idx, ': (', ord_dict[x], ')\t', x)
+			print(idx, ': ({0})\t'.format(ord_dict[x]), x)
 
 	elif key == keys['r']:
 		print("\n==============RESULTS=============")
