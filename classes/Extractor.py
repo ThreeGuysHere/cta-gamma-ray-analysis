@@ -14,7 +14,7 @@ class Extractor:
 		"""
 		self.fits_path = fits_path
 		self.relative_path = relative_path
-		self.default_config = "../data/default.conf"
+		self.default_config = relative_path+"data/default.conf"
 		self.config_loaded = False
 
 		# instanzia il lettore
