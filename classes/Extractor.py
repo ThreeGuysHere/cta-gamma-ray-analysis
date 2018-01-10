@@ -49,11 +49,10 @@ class Extractor:
 		self.blob_filter_circularity = None
 		self.blob_min_circularity = None
 
-		self.print_intermediate = None
+		self.debug_images = None
+		self.debug_prints = False
 		self.prints = False
 
-		if self.prints:
-			print('Extractor initialised')
 		return
 
 	def perform_extraction(self):
@@ -121,10 +120,10 @@ class Extractor:
 		return utils.create_xml(buffer.getvalue(),self.relative_path)
 
 	def local_stretching(self, img):
-		return k.local_stretching(img, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins, self.print_intermediate)
+		return k.local_stretching(img, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins, self.debug_images)
 
 	def local_equalization(self, img):
-		return k.local_equalization(img, self.local_eq_ksize, self.local_eq_clip_limit, self.print_intermediate)
+		return k.local_equalization(img, self.local_eq_ksize, self.local_eq_clip_limit, self.debug_images)
 
 	def adaptive_threshold(self, img):
 		return cv2.adaptiveThreshold(img, 255, self.adaptive_filtering, cv2.THRESH_BINARY, self.adaptive_block_size, self.adaptive_const)
