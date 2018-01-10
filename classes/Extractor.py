@@ -76,11 +76,11 @@ class Extractor:
 		time.toggle_time("smoothing", self.debug_prints)
 
 		# Contrast Enhancing
-		localled = self.local_transformation(self.local_mode)(smoothed)
+		#localled = self.local_transformation(self.local_mode)(smoothed)
 		time.toggle_time("contrast enhancing", self.debug_prints)
 
 		# Binary segmentation and binary morphology
-		segmented = self.segmentation(self.threshold_mode)(localled)
+		segmented = self.segmentation(self.threshold_mode)(smoothed)
 		segmented = self.morphology(segmented)
 		time.toggle_time("segmentation", self.debug_prints)
 

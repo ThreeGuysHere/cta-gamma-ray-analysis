@@ -20,7 +20,7 @@ def normalize(src):
 
 def get_data(src):
 	data = fits.getdata(src)
-	data = k.local_stretching2(data, 15, 5, 5, False)
+	data = k.local_stretching2(data, 20, 10, 5, False)
 	data = normalize(data)
 	return data.astype(np.uint8)
 
