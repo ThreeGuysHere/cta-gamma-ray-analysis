@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 
 class Extractor:
 
-	def __init__(self, fits_path=None, relative_path="../", debug_prints=True, prints=True):
+	def __init__(self, fits_path=None, relative_path="../", outname="detected.xml", debug_prints=True, prints=True):
 		"""
 		Constructor
 		"""
@@ -16,6 +16,7 @@ class Extractor:
 		self.relative_path = relative_path
 		self.default_config = relative_path+"data/default.conf"
 		self.config_loaded = False
+		self.outname = outname
 
 		# instanzia il lettore
 		self.median_iter = None
@@ -112,12 +113,12 @@ class Extractor:
 		if self.debug_prints:
 			time.total()
 
-		utils.show2(Blobbed=im_with_keypoints, Original=img)
+		#utils.show2(Blobbed=im_with_keypoints, Original=img)
 		if self.prints:
 			print('Done!')
 			print('=================================')
 
-		return utils.create_xml(buffer.getvalue(),self.relative_path)
+		return utils.create_xml(buffer.getvalue(),self.relative_path, self.outname)
 
 	def local_stretching(self, img):
 		return k.local_stretching(img, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins, self.debug_images)

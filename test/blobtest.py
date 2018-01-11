@@ -4,7 +4,7 @@ import cv2
 import collections
 
 
-fits_names = glob.glob("../img/*.fits")
+fits_names = glob.glob("../img/test/*.fits")
 index = len(fits_names) - 1
 selected_mode = -1
 selected_param = -1

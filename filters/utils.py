@@ -49,8 +49,8 @@ def show2(**kwargs):
 		y += dy if screen_end else 0
 
 
-def create_xml(sources, relative_path):
-	output_file_path = "detected.xml"
+def create_xml(sources, relative_path, outname):
+	output_file_path = outname
 	with open(relative_path+"data/output_model.xml", 'r') as model_xml:
 		with open(output_file_path, 'w') as output_file:
 
