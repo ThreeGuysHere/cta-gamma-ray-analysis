@@ -2,7 +2,7 @@
 <gammaRayAnalysis>
    <filtering>
       <median>
-         <kernelSize>7</kernelSize>
+         <kernelSize>3</kernelSize>
          <iterations>1</iterations>
       </median>
       <gaussian>
@@ -15,9 +15,9 @@
    <localTransformation>
       <!-- Stretching Parameters -->
       <type>Stretching</type>
-      <kernelSize>20</kernelSize>
+      <kernelSize>14</kernelSize>
       <stepSize>10</stepSize>
-      <minBins>5</minBins>
+      <minBins>7</minBins>
    </localTransformation>
   
    <!--<localTransformation>-->
