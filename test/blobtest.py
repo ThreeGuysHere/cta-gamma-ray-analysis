@@ -73,11 +73,11 @@ s['stretch min bins'] = ext.local_stretch_min_bins
 # if not e['equalization kernel size']:
 # 	e['equalization kernel size'] = 15
 # 	e['clip limit'] = 2.0
-
-if not s['stretch kernel size']:
-	s['stretch kernel size'] = 21
-	s['stretch step size'] = 5
-	s['stretch min bins'] = 3
+#
+# if not s['stretch kernel size']:
+# 	s['stretch kernel size'] = 21
+# 	s['stretch step size'] = 5
+# 	s['stretch min bins'] = 3
 
 
 def init_ext():
