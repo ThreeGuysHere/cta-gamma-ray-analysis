@@ -18,15 +18,20 @@
 		
 		
 **Legenda**:
-
+Type the following keys to change mode:
 - `t`	adaptive threshold
 - `f`	gaussian & median filter
 - `s`	local stretch
 
-- `r`	print results
-- `v`	print current values
+then type `[1 .. 4]` to select the parameter and use `left-arrow` and `right-arrow` to change it.
 
-- use `up-arrow` and `down-arrow` to change map
-- `esc`	quit
+Then you can type:
+
+- `r`	to print results 
+- `v`	to print current values
+
+- `up-arrow` and `down-arrow` to change map
+- `enter` to print legenda
+- `esc`	to quit
 
 	
