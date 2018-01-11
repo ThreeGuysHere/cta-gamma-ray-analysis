@@ -3,9 +3,10 @@ import numpy as np
 from filters import utils, kernelize as k
 from matplotlib import pyplot as plt
 
-img = utils.get_data('../data/3s.fits')
+filepath = '../img/3s_strong_noise.fits'
+img = utils.get_data(filepath)
 
-output = k.gaussian_median(img, 3, 7, 1)
+output = k.median_gaussian(img, 3, 7, 1)
 
 output = np.multiply(output.astype(np.uint32)**0.5, 255**0.5).astype(np.uint8)
 

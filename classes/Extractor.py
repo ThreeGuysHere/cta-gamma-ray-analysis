@@ -2,68 +2,151 @@ from filters import kernelize as k, utils, centroid_extraction as ce
 from classes import TimeChecker as timer, BlobResult as blob
 import cv2
 import numpy as np
+from io import StringIO
+from bs4 import BeautifulSoup
 
 
 class Extractor:
 
-	def __init__(self, fits_path=None):
+	def __init__(self, fits_path=None, relative_path="../", debug_prints=True, prints=True):
 		"""
 		Constructor
 		"""
 		self.fits_path = fits_path
-		print('Extractor initialised')
+		self.relative_path = relative_path
+		self.default_config = relative_path+"data/default.conf"
+		self.config_loaded = False
+
+		# instanzia il lettore
+		self.median_iter = None
+		self.median_ksize = None
+
+		self.gaussian_iter = None
+		self.gaussian_ksize = None
+		self.gaussian_sigma = None
+
+		self.local_mode = None
+		self.threshold_mode = None
+
+		self.local_stretch_ksize = None
+		self.local_stretch_step_size = None
+		self.local_stretch_min_bins = None
+
+		self.local_eq_ksize = None
+		self.local_eq_clip_limit = None
+
+		self.adaptive_filtering = None
+		self.adaptive_block_size = None
+		self.adaptive_const = None
+
+		self.morph_type = None
+		self.morph_shape = None
+		self.morph_size = None
+
+		self.blob_filter_area = None
+		self.blob_min_area = None
+		self.blob_max_area = None
+		self.blob_filter_circularity = None
+		self.blob_min_circularity = None
+
+		self.debug_images = None
+		self.debug_prints = debug_prints
+		self.prints = prints
+
 		return
 
 	def perform_extraction(self):
 		"""
 		Identifies the gamma-ray source coordinates (RA,Dec) from the input map and creates a xml file for ctlike
-		:param fits_map_path: input map.fits path
 		:return: (ra,dec) coordinates of the source and the path of the output xml
 		"""
+		#load default parameters
+		if not self.config_loaded:
+			self.load_config(self.default_config)
+
 		time = timer.TimeChecker()
 		# Open fits map
-		img = utils.get_data(self.fits_path)
-		print("loaded map: {0}".format(self.fits_path))
-
-		time.toggle_time("read")
+		img = utils.get_data(self.fits_path, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins)
+		if self.prints:
+			print("loaded map: {0}".format(self.fits_path))
+		time.toggle_time("read", self.debug_prints)
 
 		# Filter map
-		smoothed = k.gaussian_median(img, 3, 7, 1)
-		localled = self.local_stretching()
-		#localled = self.local_equalization(smoothed)
-		time.toggle_time("smoothing")
+		smoothed = k.median_gaussian(img, self.median_iter, self.median_ksize, self.gaussian_iter, self.gaussian_ksize, self.gaussian_sigma)
+		time.toggle_time("smoothing", self.debug_prints)
+
+		# Contrast Enhancing
+		#localled = self.local_transformation(self.local_mode)(smoothed)
+		time.toggle_time("contrast enhancing", self.debug_prints)
 
 		# Binary segmentation and binary morphology
-		block_size = 13
-		const = -7
-		# TODO: tuning parametri per condizioni variabili
-		segmented = cv2.adaptiveThreshold(localled, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, block_size, const)
-
-		# TODO: sorgenti grandi "da riempire": dilation
-		# TODO: sorgenti piccole "deboli": dilation (attenzione a non eliminarle con erosion)
-		# TODO: sorgenti sovrapposte: erosion (ma attenzione a quanta, si rischia di eliminare sorgenti deboli)
-		# TODO: rumore spurio: erosion ma stesso discorso di sopra (o median filter a posteriori)
-		segmented = cv2.morphologyEx(segmented, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)))
-		#segmented = cv2.erode(segmented, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 1)), iterations=2)
-		#segmented = cv2.dilate(segmented, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2)), iterations=1)
-
-		time.toggle_time("segmentation")
+		segmented = self.segmentation(self.threshold_mode)(smoothed)
+		segmented = self.morphology(segmented)
+		time.toggle_time("segmentation", self.debug_prints)
 
 		# Blob detection
-		# # Detection parameters
+		keypoints = self.blob_detection(segmented)
+
+		# # Overlap keypoints and original image
+		im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+		# Create output file
+		index = 0
+		buffer = StringIO()
+
+		if self.prints:
+			for keyPoint in keypoints:
+				print('----------------------------------')
+				current_blob = blob.BlobResult(self.fits_path, index, self.relative_path)
+				index = index + 1
+
+				current_blob.set_bary(keyPoint.pt)
+				current_blob.set_diameter(keyPoint.size)
+				current_blob.set_mask(img.shape)
+				current_blob.print_values()
+
+				buffer.write(current_blob.make_xml_blob()+'\n')
+			print('----------------------------------')
+
+		time.toggle_time("blob extraction", self.debug_prints)
+		if self.debug_prints:
+			time.total()
+
+		utils.show2(Blobbed=im_with_keypoints, Original=img)
+		if self.prints:
+			print('Done!')
+			print('=================================')
+
+		return utils.create_xml(buffer.getvalue(),self.relative_path)
+
+	def local_stretching(self, img):
+		return k.local_stretching(img, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins, self.debug_images)
+
+	def local_equalization(self, img):
+		return k.local_equalization(img, self.local_eq_ksize, self.local_eq_clip_limit, self.debug_images)
+
+	def adaptive_threshold(self, img):
+		return cv2.adaptiveThreshold(img, 255, self.adaptive_filtering, cv2.THRESH_BINARY, self.adaptive_block_size, self.adaptive_const)
+
+	def morphology(self, img):
+		return cv2.morphologyEx(img, self.morph_type, cv2.getStructuringElement(self.morph_shape, (self.morph_size, self.morph_size)))
+
+	def blob_detection(self, img):
+		# Detection parameters
 		params = cv2.SimpleBlobDetector_Params()
 
-		# # Thresholds
+		# Thresholds
 		params.minThreshold = 0
 		params.maxThreshold = 256
 
-		# # Filter blob by area
-		params.filterByArea = True
-		params.minArea = 15
+		# Filter blob by area
+		params.filterByArea = self.blob_filter_area
+		params.minArea = self.blob_min_area
+		params.maxArea = self.blob_max_area
 
-		# # Filter blob by circularity
-		params.filterByCircularity = True
-		params.minCircularity = 0.2
+		# Filter blob by circularity
+		params.filterByCircularity = self.blob_filter_circularity
+		params.minCircularity = self.blob_min_circularity
 
 		# # Remove unnecessary filters
 		params.filterByConvexity = False
@@ -72,86 +155,82 @@ class Extractor:
 		detector = cv2.SimpleBlobDetector_create(params)
 
 		# # Detect blobs
-		reverse_segmented = 255 - segmented
-		keypoints = detector.detect(reverse_segmented)
+		reverse_segmented = 255 - img
+		return detector.detect(reverse_segmented)
 
-		# # Overlap keypoints and original image
-		im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+	def load_config(self, filepath):
+		conf_file = open(filepath, "r")
+		config = BeautifulSoup(conf_file, "html.parser")
+		conf_file.close()
+		root = config.gammarayanalysis
+		if root.filtering.median:
+			self.median_iter = utils.convert_node_value(root.filtering.median.iterations)
+			self.median_ksize = utils.convert_node_value(root.filtering.median.kernelsize)
+		if root.filtering.gaussian:
+			self.gaussian_iter = utils.convert_node_value(root.filtering.gaussian.iterations)
+			self.gaussian_ksize = utils.convert_node_value(root.filtering.gaussian.kernelsize)
+			self.gaussian_sigma = utils.convert_node_value(root.filtering.gaussian.sigma)
 
-		blob_array = []
-		for keyPoint in keypoints:
-			current_blob = blob.BlobResult(self.fits_path)
-			current_blob.set_bary(keyPoint.pt)
-			current_blob.set_diameter(keyPoint.size)
-			current_blob.set_mask(img.shape)
+		self.local_mode = utils.convert_node_value(root.localtransformation.type, "string")
+		if self.local_mode == "Stretching":
+			self.local_stretch_ksize = utils.convert_node_value(root.localtransformation.kernelsize)
+			self.local_stretch_step_size = utils.convert_node_value(root.localtransformation.stepsize)
+			self.local_stretch_min_bins = utils.convert_node_value(root.localtransformation.minbins)
+		elif self.local_mode == "Equalization":
+			self.local_eq_ksize = utils.convert_node_value(root.localtransformation.kernelsize)
+			self.local_eq_clip_limit = utils.convert_node_value(root.localtransformation.stepsize)
 
-			blob_array.append(current_blob)
+		self.threshold_mode = utils.convert_node_value(root.segmentation.type, "string")
+		if self.threshold_mode == "Adaptive":
+			self.adaptive_filtering = self.adaptive_filter(utils.convert_node_value(root.segmentation.filter, "string"))
+			self.adaptive_block_size = utils.convert_node_value(root.segmentation.blocksize)
+			self.adaptive_const = utils.convert_node_value(root.segmentation.constant)
 
-		time.toggle_time("blob extraction")
+		if root.binarymorphology:
+			self.morph_type = self.morph_operator(utils.convert_node_value(root.binarymorphology.type, "string"))
+			self.morph_shape = self.set_morph_shape(utils.convert_node_value(root.binarymorphology.shape, "string"))
+			self.morph_size = utils.convert_node_value(root.binarymorphology.size)
 
-		for el in blob_array:
-			print('----------------------------------')
-			el.print_values()
-			center, area, radius, masked = ce.find_weighted_centroid(smoothed, el.mask)
-			el.bary = center
-			el.diam = 2*radius
-			print("center = {0}\narea = {1}\nradius = {2}\nRA,Dec = ({3},{4})".format(center, area, radius, el.radec[0], el.radec[1]))
-			# cv2.imshow("Masks", masked)
-			# cv2.waitKey()
-		print('=================================')
+		if root.blobdetector:
+			self.blob_filter_area = utils.convert_node_value(root.blobdetector.filterarea, "bool")
+			if root.blobdetector.minarea:
+				self.blob_min_area = utils.convert_node_value(root.blobdetector.minarea)
+			if root.blobdetector.maxarea:
+				self.blob_max_area = utils.convert_node_value(root.blobdetector.maxarea)
+			self.blob_filter_circularity = utils.convert_node_value(root.blobdetector.filtercircularity, "bool")
+			self.blob_min_circularity = utils.convert_node_value(root.blobdetector.mincircularity, "float")
 
-		time.toggle_time("blob features")
-		time.total()
+		if root.debugimages:
+			self.debug_images = utils.convert_node_value(root.debugimages, "bool")
 
-		#utils.show(Original=img, Smoothed=smoothed, Segmented=segmented, Blobbed=im_with_keypoints)
-		utils.show(Blobbed=im_with_keypoints, Original=img)
+		self.config_loaded = True
+		return
 
-		# # cercare il massimo + neighbour al n%
-		# masked_original = np.multiply(smoothed, el.mask)
-		# center_intensity = np.argwhere(masked_original >= int(np.amax(masked_original)*0.95))
-		# print(center_intensity)
+	def local_transformation(self, x):
+		return {
+			"Stretching": self.local_stretching,
+			"Equalization": self.local_equalization,
+		}.get(x)
 
-		# create output xml file coi risultati
-		return '/stay/tuned.xml'
+	def segmentation(self, x):
+		return {
+			"Adaptive": self.adaptive_threshold,
+		}.get(x)
 
+	def adaptive_filter(self, x):
+		return {
+			"Mean": cv2.ADAPTIVE_THRESH_MEAN_C,
+			"Gaussian": cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+		}.get(x)
 
+	def set_morph_shape(self, x):
+		return {
+			"Ellipse": cv2.MORPH_ELLIPSE,
+			"Cross": cv2.MORPH_CROSS,
+		}.get(x)
 
-	def local_stretching(self):
-		time = timer.TimeChecker()
-		# Open fits map
-		img = utils.get_data(self.fits_path)
-		print("loaded map: {0}".format(self.fits_path))
-
-		time.toggle_time("read")
-
-		# Filter map
-		smoothed = k.gaussian_median(img, 3, 7, 1)
-		localled = smoothed.copy()
-		time.toggle_time("smoothing")
-
-		ksize = 15
-		for (x, y, window) in utils.sliding_window(smoothed, stepSize=5, windowSize=(ksize, ksize)):
-			local_hist = cv2.calcHist([window], [0], None, [256], [0, 255])
-			bins = np.count_nonzero(local_hist)
-			if bins > 3:
-				window1 = window.copy()
-				cv2.normalize(window1, window1, 0, 255, cv2.NORM_MINMAX)
-				localled[y:y + ksize, x:x + ksize] = window1
-				# localled[y:y + ksize, x:x + ksize] = np.multiply(255/(rmax-rmin), (window-rmin))
-
-		#utils.show(Original=img, Smoothed=smoothed, Local=localled)
-		return localled
-
-	def local_equalization(self, smoothed):
-		time = timer.TimeChecker()
-		# Open fits map
-		img = utils.get_data(self.fits_path)
-		print("loaded map: {0}".format(self.fits_path))
-
-		time.toggle_time("read")
-
-		# Filter map
-		clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(20, 20))
-		localled = clahe.apply(smoothed)
-
-		return localled
+	def morph_operator(self, x):
+		return {
+			"Opening": cv2.MORPH_OPEN,
+			"Closing": cv2.MORPH_CLOSE,
+		}.get(x)

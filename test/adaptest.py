@@ -29,7 +29,7 @@ while True:
 	else:
 		print(key)
 
-	smoothed = k.gaussian_median(img, 3, 7, niter)
+	smoothed = k.median_gaussian(img, 3, 7, niter)
 	segmented = cv2.adaptiveThreshold(smoothed, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, blockSize, const)
 
 	#mask = cv2.dilate(mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=1)

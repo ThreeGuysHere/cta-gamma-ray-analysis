@@ -1,41 +1,32 @@
 from astropy.io import fits
 import numpy as np
 import cv2
+from filters import kernelize as k
 
 #  screen info
-screen_width = 1650
-screen_height = 1050
-dx = int(screen_width / 3)
+screen_width = 1920
+screen_height = 1200
+dx = int(screen_width / 4)
 dy = int(screen_height / 2)
 label_bar_height = 65
 
 
-def img_prepare(src):
-	cv2.normalize(src, src, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
-	return src.astype(np.uint8)
+def normalize(src):
+	src_max = np.max(src)
+	src_min = np.min(src)
+	src = np.multiply(src-src_min, 255/(src_max - src_min))
+	return src
 
 
-def get_data(src):
+def get_data(src, stretch_ksize, stretch_stepsize, stretch_minbin):
 	data = fits.getdata(src)
-	img = data.astype(np.uint8)
-	return img_prepare(img)
+	data = k.local_stretching2(data, stretch_ksize, stretch_stepsize, stretch_minbin, False)
+	data = normalize(data)
+	return data.astype(np.uint8)
 
 
 def show(**kwargs):
-	x = 0
-	y = 0
-	for key in kwargs:
-		label = key
-		img = kwargs[key]
-		cv2.namedWindow(label, cv2.WINDOW_NORMAL)
-		cv2.imshow(label, img)
-		cv2.resizeWindow(label, dx, dy - label_bar_height)
-		cv2.moveWindow(label, x, y)
-
-		screen_end = int(x / (screen_width - dx)) > 0
-
-		x = x + dx if not screen_end else 0
-		y += dy if screen_end else 0
+	show2(**kwargs)
 
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
@@ -58,31 +49,21 @@ def show2(**kwargs):
 		y += dy if screen_end else 0
 
 
-def create_xml(model, output, pnt_type="equatorial", ra=83.64, dec=22.02, obsid=1, start=0.0, duration=100.0,
-				emin=0.1, emax=100, caldb="prod2", fov=10, irf="South_0.5h"):
-	with open(model, 'r') as model_xml:
-		with open(output, 'w') as output_file:
+def create_xml(sources, relative_path):
+	output_file_path = "detected.xml"
+	with open(relative_path+"data/output_model.xml", 'r') as model_xml:
+		with open(output_file_path, 'w') as output_file:
 
 			# read model
 			parametrized = model_xml.read()
 
 			# replace params
-			parametrized = parametrized.replace("PNT", str(pnt_type))
-			parametrized = parametrized.replace("RAX", str(ra))
-			parametrized = parametrized.replace("DEC", str(dec))
-			parametrized = parametrized.replace("OBS", str(obsid))
-			parametrized = parametrized.replace("STR", str(start))
-			parametrized = parametrized.replace("DUR", str(duration))
-			parametrized = parametrized.replace("EMI", str(emin))
-			parametrized = parametrized.replace("EMA", str(emax))
-			parametrized = parametrized.replace("CAL", str(caldb))
-			parametrized = parametrized.replace("FOV", str(fov))
-			parametrized = parametrized.replace("IRF", str(irf))
+			parametrized = parametrized.replace("FOUND_SOURCES", str(sources))
 
 			# write replaced
 			output_file.write(parametrized)
 
-	return parametrized
+	return output_file_path
 
 
 def plot3d(src):
@@ -114,3 +95,20 @@ def sliding_window(image, stepSize, windowSize):
 		for x in range(0, image.shape[1] - int(windowSize[1]) + 1, stepSize):
 			# yield the current window
 			yield (x, y, image[y:y + windowSize[1], x:x + windowSize[0]])
+
+
+def perror(error):
+	print("Error value: {0}".format(error))
+
+
+def convert_node_value(value, type='int'):
+	return {
+		'int': lambda x: int(x),
+		'float': lambda x: float(x),
+		'string': lambda x: x,
+		'bool': str2bool,
+	}[type](value.string)
+
+
+def str2bool(v):
+	return v.lower() in ("yes", "true", "t", "1")
