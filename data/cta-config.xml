@@ -3,7 +3,7 @@
    <filtering>
       <median>
          <kernelSize>3</kernelSize>
-         <iterations>1</iterations>
+         <iterations>2</iterations>
       </median>
       <gaussian>
          <kernelSize>3</kernelSize>
@@ -15,9 +15,9 @@
    <localTransformation>
       <!-- Stretching Parameters -->
       <type>Stretching</type>
-      <kernelSize>14</kernelSize>
+      <kernelSize>20</kernelSize>
       <stepSize>10</stepSize>
-      <minBins>7</minBins>
+      <minBins>5</minBins>
    </localTransformation>
   
    <!--<localTransformation>-->
