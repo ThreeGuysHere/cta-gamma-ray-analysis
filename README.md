@@ -1,6 +1,6 @@
 # cta-gamma-ray-analysis
 
-1. Run `test/blobtest.py`
+1. Run `run.sh`
 2. Keep focus on displayed images
 3. You can change:
 	- **Adaptive Threshold**
