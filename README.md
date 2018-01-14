@@ -1,8 +1,9 @@
 # cta-gamma-ray-analysis
 
-1. Run `run.sh`
-2. Keep focus on displayed images
-3. You can change:
+1. Install all the libraries listed in `requirements.txt`
+2. Run `run.sh`
+3. Keep focus on displayed images
+4. You can change:
 	- **Adaptive Threshold**
 		- **blockSize**, Size of a pixel neighbourhood that is used to calculate a threshold value for the pixel
 		- **const**, Constant subtracted from the mean or weighted mean
