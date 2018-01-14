@@ -11,7 +11,7 @@ selected_param = -1
 run = True
 
 ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-# ext.load_config("../data/cta-config.xml")
+ext.load_config("../data/cta-config.xml")
 
 
 keys = {
@@ -24,7 +24,7 @@ keys = {
 	'threshold': 116,  		# t
 	'filter': 102,  		# f
 	'stretch': 115,  		# s
-	'equalization': 101,  	# e
+	#  'equalization': 101,  	# e
 	'r': 114,
 	'v': 118,
 	'1': 49,
@@ -40,44 +40,44 @@ mode = {
 	'none': 0,
 	'threshold': 1,
 	'filter': 2,
-	'equalization': 3,
-	'stretch': 4,
+	'stretch': 3,
+	# 'equalization': 4,
 }
 
 
-#current parameters
+# current parameters
 params = collections.OrderedDict({
 	'threshold': collections.OrderedDict(),
 	'filter': collections.OrderedDict(),
-	'equalization': collections.OrderedDict(),
+	# 'equalization': collections.OrderedDict(),
 	'stretch': collections.OrderedDict()
 })
 
 t = params['threshold']
 f = params['filter']
-e = params['equalization']
+# e = params['equalization']
 s = params['stretch']
-params['local mode'] = ext.local_mode
+#params['local mode'] = ext.local_mode
 t['adaptive kernel size'] = ext.adaptive_block_size
 t['adaptive constant'] = ext.adaptive_const
 f['number of median iterations'] = ext.median_iter
 f['median kernel size'] = ext.median_ksize
 f['number of gaussian iterations'] = ext.gaussian_iter
 f['gaussian kernel size'] = ext.gaussian_ksize
-e['equalization kernel size'] = ext.local_eq_ksize
-e['clip limit'] = ext.local_eq_clip_limit
+# e['equalization kernel size'] = ext.local_eq_ksize
+# e['clip limit'] = ext.local_eq_clip_limit
 s['stretch kernel size'] = ext.local_stretch_ksize
 s['stretch step size'] = ext.local_stretch_step_size
 s['stretch min bins'] = ext.local_stretch_min_bins
 
-if not e['equalization kernel size']:
-	e['equalization kernel size'] = 15
-	e['clip limit'] = 2.0
-
-if not s['stretch kernel size']:
-	s['stretch kernel size'] = 21
-	s['stretch step size'] = 5
-	s['stretch min bins'] = 3
+# if not e['equalization kernel size']:
+# 	e['equalization kernel size'] = 15
+# 	e['clip limit'] = 2.0
+#
+# if not s['stretch kernel size']:
+# 	s['stretch kernel size'] = 21
+# 	s['stretch step size'] = 5
+# 	s['stretch min bins'] = 3
 
 
 def init_ext():
@@ -87,19 +87,19 @@ def init_ext():
 	ext.median_ksize = f['median kernel size']
 	ext.gaussian_iter = f['number of gaussian iterations']
 	ext.gaussian_ksize = f['gaussian kernel size']
-	ext.local_eq_ksize = e['equalization kernel size']
-	ext.local_eq_clip_limit = e['clip limit']
+	# ext.local_eq_ksize = e['equalization kernel size']
+	# ext.local_eq_clip_limit = e['clip limit']
 	ext.local_stretch_ksize = s['stretch kernel size']
 	ext.local_stretch_step_size = s['stretch step size']
 	ext.local_stretch_min_bins = s['stretch min bins']
-	ext.local_mode = params['local mode']
+	#ext.local_mode = params['local mode']
 
 
 def print_mode():
 	print("\nSelect mode: \n"
 		"t:\t\tadaptive threshold\n"
 		"f:\t\tgaussian & median filter\n"
-		"e:\t\tlocal equalization\n"
+		# "e:\t\tlocal equalization\n"
 		"s:\t\tlocal stretch\n\n"
 		"r:\t\tprint results\n"
 		"v:\t\tprint current values\n"
@@ -146,16 +146,17 @@ while True:
 		print_values(params)
 
 	# MODE
-	elif key in [keys['threshold'], keys['filter'], keys['equalization'], keys['stretch']]:
+	#elif key in [keys['threshold'], keys['filter'], keys['equalization'], keys['stretch']]:
+	elif key in [keys['threshold'], keys['filter'], keys['stretch']]:
 		mode_key = [k for k, v in keys.items() if v == key][0]
 		print("\nSelected mode:", mode_key.upper(), " - Select the parameter to change:\n")
 		run = True
 		selected_mode = mode[mode_key]
 
-		if key == keys['equalization']:
-			params['local mode'] = "Equalization"
-		elif key == keys['stretch']:
-			params['local mode'] = "Stretching"
+		# if key == keys['equalization']:
+		# 	params['local mode'] = "Equalization"
+		# elif key == keys['stretch']:
+		# 	params['local mode'] = "Stretching"
 
 		ord_dict = collections.OrderedDict(params[mode_key])
 		idx = 0
@@ -171,11 +172,11 @@ while True:
 	elif key == keys['up_arrow'] and index < len(fits_names) - 1:
 		index += 1
 		ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-		#ext.load_config("../data/cta-config.xml")
+		ext.load_config("../data/cta-config.xml")
 	elif key == keys['down_arrow'] and index > 0:
 		index -= 1
 		ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-		#ext.load_config("../data/cta-config.xml")
+		ext.load_config("../data/cta-config.xml")
 
 	# PARAM
 	elif key in [keys['1'], keys['2'], keys['3'], keys['4'], keys['5']]:
@@ -222,21 +223,21 @@ while True:
 				else:
 					print("\nNo parameter selected!")
 
-			elif selected_mode == mode['equalization']:
-				if selected_param == 1:
-					e['equalization kernel size'] += 2*sign
-					if e['equalization kernel size'] < 3:
-						e['equalization kernel size'] = 3
-				elif selected_param == 2:
-					e['clip limit'] += sign
-				else:
-					print("\nNo parameter selected!")
+			# elif selected_mode == mode['equalization']:
+			# 	if selected_param == 1:
+			# 		e['equalization kernel size'] += 2*sign
+			# 		if e['equalization kernel size'] < 3:
+			# 			e['equalization kernel size'] = 3
+			# 	elif selected_param == 2:
+			# 		e['clip limit'] += sign
+			# 	else:
+			# 		print("\nNo parameter selected!")
 
 			elif selected_mode == mode['stretch']:
 				if selected_param == 1:
 					s['stretch kernel size'] += 2*sign
-					if s['stretch kernel size'] < 3:
-						s['stretch kernel size'] = 3
+					if s['stretch kernel size'] < 2:
+						s['stretch kernel size'] = 2
 				elif selected_param == 2:
 					s['stretch step size'] += sign
 					if s['stretch step size'] < 1:

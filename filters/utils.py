@@ -18,9 +18,9 @@ def normalize(src):
 	return src
 
 
-def get_data(src):
+def get_data(src, stretch_ksize, stretch_stepsize, stretch_minbin):
 	data = fits.getdata(src)
-	data = k.local_stretching2(data, 20, 10, 5, False)
+	data = k.local_stretching2(data, stretch_ksize, stretch_stepsize, stretch_minbin, False)
 	data = normalize(data)
 	return data.astype(np.uint8)
 

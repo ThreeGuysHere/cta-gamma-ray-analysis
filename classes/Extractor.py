@@ -67,7 +67,7 @@ class Extractor:
 
 		time = timer.TimeChecker()
 		# Open fits map
-		img = utils.get_data(self.fits_path)
+		img = utils.get_data(self.fits_path, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins)
 		if self.prints:
 			print("loaded map: {0}".format(self.fits_path))
 		time.toggle_time("read", self.debug_prints)
