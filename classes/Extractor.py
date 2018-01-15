@@ -54,11 +54,14 @@ class Extractor:
 		self.debug_prints = debug_prints
 		self.prints = prints
 
+		self.normalizedimg = None
+
 		return
 
 
 	def get_data(self, src, stretch_ksize, stretch_stepsize, stretch_minbin):
 		data = fits.getdata(src)
+		self.normalizedimg = utils.normalize(data).astype(np.uint8)
 		data = k.local_stretching2(data, stretch_ksize, stretch_stepsize, stretch_minbin, False)
 		data = utils.normalize(data)
 		return data.astype(np.uint8)
@@ -121,9 +124,9 @@ class Extractor:
 			time.total()
 
 		if self.debug_images:
-			utils.show(Results=im_with_keypoints, Original=img, Smoothed=smoothed, Segmented=segmented)
+			utils.show(Results=im_with_keypoints, Original=self.normalizedimg, Smoothed=smoothed, Segmented=segmented)
 		else:
-			utils.show(Results=im_with_keypoints, Original=img)
+			utils.show(Results=im_with_keypoints, Original=self.normalizedimg)
 
 		if self.prints:
 			print('Done!')
