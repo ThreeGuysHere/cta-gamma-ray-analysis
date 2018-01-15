@@ -23,21 +23,7 @@ def normalize(src):
 	return src
 
 
-def get_data(src, stretch_ksize, stretch_stepsize, stretch_minbin):
-	data = fits.getdata(src)
-	data = k.local_stretching2(data, stretch_ksize, stretch_stepsize, stretch_minbin, False)
-	data = normalize(data)
-	return data.astype(np.uint8)
-
-
-def show(**kwargs):
-	show2(**kwargs)
-
-	cv2.waitKey(0)
-	cv2.destroyAllWindows()
-
-
-def show2(**kwargs):
+def show(wait=False, **kwargs):
 	x = 0
 	y = 0
 	for key in kwargs:
@@ -52,6 +38,10 @@ def show2(**kwargs):
 
 		x = x + dx if not screen_end else 0
 		y += dy if screen_end else 0
+
+		if wait:
+			cv2.waitKey(0)
+			cv2.destroyAllWindows()
 
 
 def create_xml(sources, relative_path):

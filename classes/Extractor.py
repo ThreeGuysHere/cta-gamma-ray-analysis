@@ -1,6 +1,7 @@
 from filters import kernelize as k, utils, centroid_extraction as ce
 from classes import TimeChecker as timer, BlobResult as blob
 import cv2
+from astropy.io import fits
 import numpy as np
 from io import StringIO
 from bs4 import BeautifulSoup
@@ -55,6 +56,13 @@ class Extractor:
 
 		return
 
+
+	def get_data(self, src, stretch_ksize, stretch_stepsize, stretch_minbin):
+		data = fits.getdata(src)
+		data = k.local_stretching2(data, stretch_ksize, stretch_stepsize, stretch_minbin, False)
+		data = utils.normalize(data)
+		return data.astype(np.uint8)
+
 	def perform_extraction(self):
 		"""
 		Identifies the gamma-ray source coordinates (RA,Dec) from the input map and creates a xml file for ctlike
@@ -66,7 +74,7 @@ class Extractor:
 
 		time = timer.TimeChecker()
 		# Open fits map
-		img = utils.get_data(self.fits_path, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins)
+		img = self.get_data(self.fits_path, self.local_stretch_ksize, self.local_stretch_step_size, self.local_stretch_min_bins)
 		if self.prints:
 			print("loaded map: {0}".format(self.fits_path))
 		time.toggle_time("read", self.debug_prints)
@@ -112,7 +120,11 @@ class Extractor:
 		if self.debug_prints:
 			time.total()
 
-		utils.show2(Blobbed=im_with_keypoints, Original=img)
+		if self.debug_images:
+			utils.show(Results=im_with_keypoints, Original=img, Smoothed=smoothed, Segmented=segmented)
+		else:
+			utils.show(Results=im_with_keypoints, Original=img)
+
 		if self.prints:
 			print('Done!')
 			print('=================================')

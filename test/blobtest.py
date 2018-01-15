@@ -32,6 +32,7 @@ keys = {
 	#  'equalization': 101,  	# e
 	'r': 114,
 	'v': 118,
+	'p': 112,
 	'1': 49,
 	'2': 50,
 	'3': 51,
@@ -109,6 +110,7 @@ def print_mode():
 		"L:\t\tlocal stretch\n\n"
 		"R:\t\tprint results\n"
 		"V:\t\tprint current values\n"
+		"P:\t\tshow intermediate steps"
 		"\n'W'-'S' to change map\n"
 		"\nesc:\tquit\n"
 		"---------------------------------")
@@ -137,7 +139,7 @@ while True:
 		ext.perform_extraction()
 		ext.prints = False
 		ext.debug_prints = False
-		ext.debug_images = False
+		# ext.debug_images = False
 
 	if selected_mode == mode['init']:
 		print_mode()
@@ -177,6 +179,12 @@ while True:
 	elif key == keys['r']:
 		print("\n==============RESULTS=============")
 		ext.prints = True
+
+	elif key == keys['p']:
+		ext.debug_images = not ext.debug_images
+		if not ext.debug_images:
+			cv2.destroyWindow('Smoothed')
+			cv2.destroyWindow('Segmented')
 
 	# FITS maps
 	elif key == keys['w'] and index < len(fits_names) - 1:
@@ -268,8 +276,7 @@ while True:
 
 	else:
 		run = False
-		#
-	# print(key)
+		# print(key)
 
 cv2.destroyAllWindows()
 
