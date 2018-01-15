@@ -2,10 +2,15 @@ from astropy.io import fits
 import numpy as np
 import cv2
 from filters import kernelize as k
+import tkinter as tk
+
 
 #  screen info
-screen_width = 1920
-screen_height = 1200
+root = tk.Tk()
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+print("Screen resolution: {0}x{1}".format(screen_width, screen_height))
+
 dx = int(screen_width / 4)
 dy = int(screen_height / 2)
 label_bar_height = 65

@@ -120,6 +120,7 @@ def print_values(params):
 	print('==================================\n')
 
 
+print("\n### Please keep focus on the maps canvases when changing the parameters ###")
 while True:
 
 	if run:
