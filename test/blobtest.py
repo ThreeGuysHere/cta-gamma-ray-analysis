@@ -2,19 +2,28 @@ from classes import Extractor
 import glob
 import cv2
 import collections
+import argparse
+
+parser = argparse.ArgumentParser(description='Detect Sources')
+parser.add_argument('--filepath', type=str, help='Path of the fits file')
+parser.add_argument('--config', type=str, help='Path of config file (default = data/default.conf)')
+args = parser.parse_args()
+
+fitspath = args.filepath if args.filepath else "../img/test/*.fits"
+config = args.config if args.config else "../data/default.conf"
 
 
-fits_names = glob.glob("../img/*.fits")
+fits_names = glob.glob(fitspath)
 index = len(fits_names) - 1
 selected_mode = -1
 selected_param = -1
 run = True
 debug_images = False
 
-ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-ext.load_config("../data/cta-config.xml")
-ext.perform_extraction()
+ext = Extractor.Extractor(fits_names[0], debug_prints=False, prints=False)
+ext.load_config(config)
 ext.debug_images = debug_images
+ext.perform_extraction()
 
 
 keys = {
@@ -106,14 +115,14 @@ def init_ext():
 def print_mode():
 	print("---------------------------------"
 		"\nSelect mode: \n\n"
-		"T:\t\tadaptive threshold\n"
-		"F:\t\tgaussian & median filter\n"
+		"t:\t\tadaptive threshold\n"
+		"f:\t\tgaussian & median filter\n"
 		# "e:\t\tlocal equalization\n"
-		"L:\t\tlocal stretch\n\n"
-		"R:\t\tprint results\n"
-		"V:\t\tprint current values\n"
-		"P:\t\tshow intermediate steps\n"
-		"\n'W'-'S' to change map\n"
+		"l:\t\tlocal stretch\n\n"
+		"r:\t\tprint results\n"
+		"v:\t\tprint current values\n"
+		"p:\t\tshow intermediate steps\n"
+		"\n'w'-'s' to change map\n"
 		"\nesc:\tquit\n"
 		"---------------------------------")
 	return
@@ -193,17 +202,17 @@ while True:
 	elif key == keys['w'] and index < len(fits_names) - 1:
 		index += 1
 		ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-		ext.load_config("../data/cta-config.xml")
+		ext.load_config(config)
 	elif key == keys['s'] and index > 0:
 		index -= 1
 		ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-		ext.load_config("../data/cta-config.xml")
+		ext.load_config(config)
 
 	# PARAM
 	elif key in [keys['1'], keys['2'], keys['3'], keys['4'], keys['5']]:
 		if selected_mode != mode['none']:
 			selected_param = int([k for k, v in keys.items() if v == key][0])
-			print("\nSelected param:", selected_param, " - Use 'A'-'D' to change it.")
+			print("\nSelected param:", selected_param, " - Use 'a'-'d' to change it.")
 		else:
 			print("\nNo mode selected!")
 	elif key in [keys['a'], keys['d']]:
