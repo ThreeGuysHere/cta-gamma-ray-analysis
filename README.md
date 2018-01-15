@@ -1,9 +1,27 @@
 # cta-gamma-ray-analysis
+* Python 3 is required
+* Install all the libraries listed in `requirements.txt` (`pip install -r requirements.txt`)
 
-1. Install all the libraries listed in `requirements.txt`
-2. Run `run.sh`
-3. Keep focus on displayed images
-4. You can change:
+## Detect sources on a single image
+
+1. Run `python detect.py filepath --config configpath` from the cta-gamma-ray-analysis **root folder**
+```
+usage: detect.py [-h] [--config CONFIG] filepath
+
+Detect Sources
+
+positional arguments:
+  filepath         Path of the fits file
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --config CONFIG  Path of config file (default = data/default.conf)
+ ```
+## Parameter tuning
+
+1. Run `run.sh` from the cta-gamma-ray-analysis **root folder**
+2. **Keep focus on displayed images**
+3. You can change:
 	- **Adaptive Threshold**
 		- **blockSize**, Size of a pixel neighbourhood that is used to calculate a threshold value for the pixel
 		- **const**, Constant subtracted from the mean or weighted mean
@@ -32,6 +50,9 @@ Then you can type:
 
 - `r`	to print results 
 - `v`	to print current values
+- `p`	to visualize intermediate steps
+
+
 
 - `w` and `s` to change map
 
