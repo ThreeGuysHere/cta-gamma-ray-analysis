@@ -15,7 +15,7 @@
    <localTransformation>
       <!-- Stretching Parameters -->
       <type>Stretching</type>
-      <kernelSize>20</kernelSize>
+      <kernelSize>14</kernelSize>
       <stepSize>10</stepSize>
       <minBins>5</minBins>
    </localTransformation>
