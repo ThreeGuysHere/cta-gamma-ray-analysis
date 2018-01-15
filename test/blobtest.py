@@ -4,15 +4,17 @@ import cv2
 import collections
 
 
-fits_names = glob.glob("../img/test/*.fits")
+fits_names = glob.glob("../img/*.fits")
 index = len(fits_names) - 1
 selected_mode = -1
 selected_param = -1
 run = True
+debug_images = False
 
 ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-# ext.load_config("../data/cta-config.xml")
+ext.load_config("../data/cta-config.xml")
 ext.perform_extraction()
+ext.debug_images = debug_images
 
 
 keys = {
@@ -136,10 +138,11 @@ while True:
 
 	if run:
 		init_ext()
+		ext.debug_images = debug_images
 		ext.perform_extraction()
 		ext.prints = False
 		ext.debug_prints = False
-		# ext.debug_images = False
+
 
 	if selected_mode == mode['init']:
 		print_mode()
@@ -181,8 +184,8 @@ while True:
 		ext.prints = True
 
 	elif key == keys['p']:
-		ext.debug_images = not ext.debug_images
-		if not ext.debug_images:
+		debug_images = not debug_images
+		if not debug_images:
 			cv2.destroyWindow('Smoothed')
 			cv2.destroyWindow('Segmented')
 
@@ -190,11 +193,11 @@ while True:
 	elif key == keys['w'] and index < len(fits_names) - 1:
 		index += 1
 		ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-		# ext.load_config("../data/cta-config.xml")
+		ext.load_config("../data/cta-config.xml")
 	elif key == keys['s'] and index > 0:
 		index -= 1
 		ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-		# ext.load_config("../data/cta-config.xml")
+		ext.load_config("../data/cta-config.xml")
 
 	# PARAM
 	elif key in [keys['1'], keys['2'], keys['3'], keys['4'], keys['5']]:
