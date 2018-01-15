@@ -11,7 +11,8 @@ selected_param = -1
 run = True
 
 ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-ext.load_config("../data/cta-config.xml")
+# ext.load_config("../data/cta-config.xml")
+ext.perform_extraction()
 
 
 keys = {
@@ -21,9 +22,13 @@ keys = {
 	'down_arrow': 84,
 	'esc': 27,
 	'enter': 13,
+	'w': 119,
+	'a': 97,
+	's': 115,
+	'd': 100,
 	'threshold': 116,  		# t
 	'filter': 102,  		# f
-	'stretch': 115,  		# s
+	'stretch': 108,  		# s
 	#  'equalization': 101,  	# e
 	'r': 114,
 	'v': 118,
@@ -96,15 +101,17 @@ def init_ext():
 
 
 def print_mode():
-	print("\nSelect mode: \n"
-		"t:\t\tadaptive threshold\n"
-		"f:\t\tgaussian & median filter\n"
+	print("---------------------------------"
+		"\nSelect mode: \n\n"
+		"T:\t\tadaptive threshold\n"
+		"F:\t\tgaussian & median filter\n"
 		# "e:\t\tlocal equalization\n"
-		"s:\t\tlocal stretch\n\n"
-		"r:\t\tprint results\n"
-		"v:\t\tprint current values\n"
-		"up-down to change map\n"
-		"esc:\tquit")
+		"L:\t\tlocal stretch\n\n"
+		"R:\t\tprint results\n"
+		"V:\t\tprint current values\n"
+		"\n'W'-'S' to change map\n"
+		"\nesc:\tquit\n"
+		"---------------------------------")
 	return
 
 
@@ -120,7 +127,9 @@ def print_values(params):
 	print('==================================\n')
 
 
-print("\n### Please keep focus on the maps canvases when changing the parameters ###")
+# print("\n=================================\nPlease keep focus on the maps\n
+#  canvases when changing the parameters\n==================================")
+
 while True:
 
 	if run:
@@ -140,10 +149,10 @@ while True:
 	if key == keys['esc']:
 		break
 
-	if key == keys['enter']:
+	elif key == keys['enter']:
 		print_mode()
 
-	if key == keys['v']:
+	elif key == keys['v']:
 		print_values(params)
 
 	# MODE
@@ -170,27 +179,27 @@ while True:
 		ext.prints = True
 
 	# FITS maps
-	elif key == keys['up_arrow'] and index < len(fits_names) - 1:
+	elif key == keys['w'] and index < len(fits_names) - 1:
 		index += 1
 		ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-		ext.load_config("../data/cta-config.xml")
-	elif key == keys['down_arrow'] and index > 0:
+		# ext.load_config("../data/cta-config.xml")
+	elif key == keys['s'] and index > 0:
 		index -= 1
 		ext = Extractor.Extractor(fits_names[index], debug_prints=False, prints=False)
-		ext.load_config("../data/cta-config.xml")
+		# ext.load_config("../data/cta-config.xml")
 
 	# PARAM
 	elif key in [keys['1'], keys['2'], keys['3'], keys['4'], keys['5']]:
 		if selected_mode != mode['none']:
 			selected_param = int([k for k, v in keys.items() if v == key][0])
-			print("\nSelected param:", selected_param, " - Use <- or -> to change.")
+			print("\nSelected param:", selected_param, " - Use 'A'-'D' to change it.")
 		else:
 			print("\nNo mode selected!")
-	elif key in [keys['right_arrow'], keys['left_arrow']]:
+	elif key in [keys['a'], keys['d']]:
 		if selected_param and selected_mode != ['none']:
-			if key == keys['right_arrow']:
+			if key == keys['d']:
 				sign = 1
-			elif key == keys['left_arrow']:
+			elif key == keys['a']:
 				sign = -1
 
 			if selected_mode == mode['threshold']:
@@ -259,7 +268,8 @@ while True:
 
 	else:
 		run = False
-		# print(key)
+		#
+	# print(key)
 
 cv2.destroyAllWindows()
 

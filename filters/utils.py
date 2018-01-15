@@ -9,7 +9,7 @@ import tkinter as tk
 root = tk.Tk()
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
-print("Screen resolution: {0}x{1}".format(screen_width, screen_height))
+#print("Screen resolution: {0}x{1}".format(screen_width, screen_height))
 
 dx = int(screen_width / 4)
 dy = int(screen_height / 2)
