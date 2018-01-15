@@ -22,16 +22,17 @@
 Type the following keys to change mode:
 - `t`	adaptive threshold
 - `f`	gaussian & median filter
-- `s`	local stretch
+- `l`	local stretch
 
-then type `[1 .. 4]` to select the parameter and use `left-arrow` and `right-arrow` to change it.
+then type `[1 .. 4]` to select the parameter and use `a` and `d` to change it.
 
 Then you can type:
 
 - `r`	to print results 
 - `v`	to print current values
 
-- `up-arrow` and `down-arrow` to change map
+- `w` and `s` to change map
+
 - `enter` to print legenda
 - `esc`	to quit
 
