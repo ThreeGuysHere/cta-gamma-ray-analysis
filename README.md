@@ -19,7 +19,9 @@
 		
 		
 **Legenda**:
-Type the following keys to change mode:
+
+Type the following keys to change mode (remember: **keep focus on the displayed images, don't write anything on the terminal**):
+
 - `t`	adaptive threshold
 - `f`	gaussian & median filter
 - `l`	local stretch
