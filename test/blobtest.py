@@ -110,7 +110,7 @@ def print_mode():
 		"L:\t\tlocal stretch\n\n"
 		"R:\t\tprint results\n"
 		"V:\t\tprint current values\n"
-		"P:\t\tshow intermediate steps"
+		"P:\t\tshow intermediate steps\n"
 		"\n'W'-'S' to change map\n"
 		"\nesc:\tquit\n"
 		"---------------------------------")
